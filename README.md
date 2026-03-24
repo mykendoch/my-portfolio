@@ -17,7 +17,8 @@
 5. [HealthX Dawa — Pharmaceutical E-Commerce Platform](#5--healthx-dawa--pharmaceutical-e-commerce-platform)
 6. [HealthX USSD — Telemedicine & Micro-Insurance USSD Platform](#6--healthx-ussd--telemedicine--micro-insurance-ussd-platform)
 7. [HXA STK Push Initiator — M-Pesa Payment Collection System](#7--hxa-stk-push-initiator--m-pesa-payment-collection-system)
-8. [Skills & Technology Summary](#-skills--technology-summary)
+8. [HXA WhatsApp Ads Bot — Conversational Booking & Payments Engine](#8--hxa-whatsapp-ads-bot--conversational-booking--payments-engine)
+9. [Skills & Technology Summary](#-skills--technology-summary)
 
 ---
 
@@ -823,6 +824,130 @@ User selects insurance plan
 
 ---
 
+## 8. 💬 HXA WhatsApp Ads Bot — Conversational Booking & Payments Engine
+
+> **End-to-end WhatsApp booking automation for HealthX Africa mental health & wellness services.**  
+> Go-based backend that receives Meta WhatsApp Business API messages, guides users through interactive booking flows, and processes payments via M-PESA STK Push and Airtel Money — all within the WhatsApp conversation.
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     WhatsApp Users                          │
+│              (Click-to-WhatsApp Meta Ads)                   │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────┐
+│               Gin Web Server (:8080)                        │
+│                                                             │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │            WhatsApp Webhook Handler                   │  │
+│  │   • Signature verification (HMAC-SHA256)              │  │
+│  │   • Referral/ad attribution extraction                │  │
+│  └───────────────────┬───────────────────────────────────┘  │
+│                      │                                      │
+│  ┌───────────────────▼───────────────────────────────────┐  │
+│  │         Message Processor Service                     │  │
+│  │   • Text & interactive button routing                 │  │
+│  │   • Flow detection (mental_health / wellness)         │  │
+│  │   • Conversation step management                      │  │
+│  └───────────────────┬───────────────────────────────────┘  │
+│                      │                                      │
+│  ┌──────────┬────────┴────────┬──────────────────────────┐  │
+│  │ Session  │  Template       │  Payment Services        │  │
+│  │ Manager  │  Service        │  ┌────────┐ ┌─────────┐  │  │
+│  │          │  (JSON-driven)  │  │ M-PESA │ │ Airtel  │  │  │
+│  │          │                 │  │  STK   │ │  Money  │  │  │
+│  │          │                 │  └────────┘ └─────────┘  │  │
+│  └──────────┴─────────────────┴──────────────────────────┘  │
+│                                                             │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │         Payment Callback Service                      │  │
+│  │   • M-PESA & Airtel callback processing               │  │
+│  │   • Session state → confirmed                         │  │
+│  │   • WhatsApp confirmation delivery                    │  │
+│  └───────────────────────────────────────────────────────┘  │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+   ┌─────────────────┼─────────────────┐
+   │                 │                 │
+   ▼                 ▼                 ▼
+PostgreSQL 15    M-PESA API       Airtel Money API
+(Sessions &      (Safaricom       (Collection
+ Payments)        Daraja)          REST API)
+```
+
+### Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Language** | Go 1.25 |
+| **Web Framework** | Gin Gonic v1.11 |
+| **Database** | PostgreSQL 15 (Docker) |
+| **Migrations** | golang-migrate v4.19 |
+| **Logging** | Uber Zap (structured JSON logging) |
+| **API Integration** | Meta WhatsApp Business API v21.0 |
+| **Payments** | M-PESA STK Push + Airtel Money Collection API |
+| **Documentation** | Swagger/OpenAPI (Swaggo auto-generated) |
+| **Containerization** | Docker + Docker Compose |
+| **Config** | Environment variables with .env auto-loading |
+
+### Service Architecture (6 Services)
+
+| Service | Responsibility |
+|---------|----------------|
+| **WhatsApp Service** | Meta API communication — text, interactive buttons, images |
+| **Message Processor** | Routes text & button responses, detects flow type, manages conversation steps |
+| **Session Manager** | Creates/resumes sessions, 1-hour expiry, auto-new after completed bookings |
+| **Template Service** | Loads & renders WhatsApp message templates from JSON with variable substitution |
+| **M-PESA Service** | OAuth token caching (55 min), STK Push initiation, 1 KES test mode |
+| **Airtel Service** | OAuth + RSA-SHA256 message signing, STK Push, validation/process/enquiry callbacks |
+| **Payment Callback Service** | Processes payment results, updates sessions, sends WhatsApp confirmations |
+
+### Booking Flow
+
+1. **Ad Click** — User taps Click-to-WhatsApp Meta ad → referral data captured (source, headline, media)
+2. **Flow Detection** — Bot detects "wellness" keyword → routes to wellness flow; otherwise mental health
+3. **Package Selection** — Interactive button menu:
+   - Mental Health: Single Session (KES 1,250) or 4-Session Bundle (KES 3,750)
+   - Wellness: JITUNZE / USTAWI / IMARIKA / BORESHA / SHUJAA / JIPENDE (KES 2,195–12,495)
+4. **Data Collection** — Bot collects full name and ID number via conversation
+5. **Payment** — User taps "Pay Now" → M-PESA or Airtel STK Push sent to phone
+6. **Confirmation** — Callback received → session marked confirmed → WhatsApp receipt sent
+
+### Data Models
+
+| Model | Key Fields |
+|-------|------------|
+| **SessionBooking** | user_phone, flow_category (mental_health/mental_wellness), current_step, package_type, full_name, id_number, referral tracking (source_type, source_id, headline, media URLs), session_details (JSONB) |
+| **Payment** | user_phone, session_id (FK), checkout_request_id (UNIQUE), amount, mpesa_receipt_number, status (pending/completed/failed/cancelled), metadata (JSONB) |
+
+### API Endpoints
+
+| Method | Endpoint | Purpose |
+|--------|----------|----------|
+| GET | `/whatsapp/webhook` | Meta webhook verification (challenge-response) |
+| POST | `/whatsapp/webhook` | Receive incoming messages, button clicks & status updates |
+| POST | `/mpesa/callback` | M-PESA STK Push payment confirmation |
+| POST | `/payments/validate` | Airtel pre-transaction validation |
+| POST | `/payments/process` | Airtel post-PIN transaction processing |
+| POST | `/payments/enquiry` | Airtel transaction status enquiry |
+| POST | `/airtel/initiate` | Initiate Airtel STK Push |
+| GET | `/health` | Health check |
+| GET | `/swagger/*` | Auto-generated API documentation |
+
+### Key Design Decisions
+
+- **JSON-driven templates** — All WhatsApp messages (text, buttons, images, footers) configured in `whatsapp_templates.json` — no code changes needed to update copy
+- **Smart session resumption** — In-progress sessions resume automatically; completed sessions trigger new booking; sessions expire after 1 hour of inactivity
+- **Dual payment provider** — M-PESA and Airtel Money with unified callback processing
+- **Ad attribution tracking** — Full referral capture from Meta ads (source type, headline, body, media) stored per session for campaign ROI analysis
+- **Environment-aware pricing** — Non-production environments auto-override to KES 1 for safe testing
+- **Repository pattern** — Clean separation: Handlers → Services → Repository → PostgreSQL
+
+---
+
 ## 🧰 Skills & Technology Summary
 
 ### Languages
@@ -831,6 +956,7 @@ User selects insurance plan
 ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
 ![PHP](https://img.shields.io/badge/PHP-777BB4?style=flat-square&logo=php&logoColor=white)
 ![Java](https://img.shields.io/badge/Java-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
+![Go](https://img.shields.io/badge/Go-00ADD8?style=flat-square&logo=go&logoColor=white)
 ![SQL](https://img.shields.io/badge/SQL-4479A1?style=flat-square&logo=postgresql&logoColor=white)
 
 ### Frontend
@@ -845,6 +971,8 @@ User selects insurance plan
 ![Express](https://img.shields.io/badge/Express-000000?style=flat-square&logo=express&logoColor=white)
 ![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=flat-square&logo=nestjs&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
+![Gin](https://img.shields.io/badge/Gin-00ADD8?style=flat-square&logo=go&logoColor=white)
+![Django](https://img.shields.io/badge/Django-092E20?style=flat-square&logo=django&logoColor=white)
 
 ### Databases & ORM
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat-square&logo=postgresql&logoColor=white)
@@ -870,6 +998,7 @@ User selects insurance plan
 ### Payments
 ![Stripe](https://img.shields.io/badge/Stripe-008CDD?style=flat-square&logo=stripe&logoColor=white)
 ![M-Pesa](https://img.shields.io/badge/M--Pesa-4CAF50?style=flat-square&logo=money&logoColor=white)
+![Airtel Money](https://img.shields.io/badge/Airtel_Money-ED1C24?style=flat-square&logo=airtel&logoColor=white)
 ![PesaPal](https://img.shields.io/badge/PesaPal-00457C?style=flat-square&logo=paypal&logoColor=white)
 
 ---
