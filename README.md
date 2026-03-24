@@ -15,7 +15,8 @@
 3. [MedCom HMIS — Legacy Healthcare Desktop System](#3--medcom-hmis--legacy-healthcare-desktop-system)
 4. [Smart Shift Planner — AI-Driven Gig Economy Scheduler](#4--smart-shift-planner--ai-driven-gig-economy-scheduler)
 5. [HealthX Dawa — Pharmaceutical E-Commerce Platform](#5--healthx-dawa--pharmaceutical-e-commerce-platform)
-6. [Skills & Technology Summary](#-skills--technology-summary)
+6. [HealthX USSD — Telemedicine & Micro-Insurance USSD Platform](#6--healthx-ussd--telemedicine--micro-insurance-ussd-platform)
+7. [Skills & Technology Summary](#-skills--technology-summary)
 
 ---
 
@@ -563,6 +564,159 @@ Auth · Shifts · Predictions · Analytics · Admin Management · Accuracy Metri
 ### Database Schema (21+ Tables)
 
 Users · Products · Categories · Orders · Order Items · Cart · Wishlist · Prescriptions · File Uploads · Delivery Zones · M-Pesa Transactions · M-Pesa Callbacks · Payment Audit Log · Payment Analytics · Payment Reconciliation · OTP Requests · Login History · Security Audit Log · Pharmacy Settings · Pharmacy License
+
+---
+
+## 6. 📱 HealthX USSD — Telemedicine & Micro-Insurance USSD Platform
+
+> **Production USSD microservice enabling healthcare access on any phone — including feature phones.**  
+> Customers dial `*384*8888#` to purchase telemedicine consultations, micro-insurance, wellness subscriptions, and health content — all paid via M-Pesa. Built for a telehealth company in Nairobi, Kenya.
+
+### Architecture: USSD Microservice Platform
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    Africa's Talking USSD                       │
+│                   POST /api/v1/ussd/callback                  │
+├──────────────────────────────────────────────────────────────┤
+│                                                                │
+│  ┌────────────┐   ┌──────────────┐   ┌────────────────────┐  │
+│  │   Express   │   │  Controller  │   │   USSD Service     │  │
+│  │  Middleware │──►│  (Routing)   │──►│  (Flow Engine)     │  │
+│  │  Helmet     │   │              │   │  1500+ lines       │  │
+│  │  CORS       │   └──────────────┘   └────────┬───────────┘  │
+│  │  Morgan     │                               │               │
+│  └────────────┘                               ▼               │
+│                                                                │
+│  ┌────────────┐   ┌──────────────┐   ┌────────────────────┐  │
+│  │  MenuBuilder│   │ CacheManager │   │  Payment Service   │  │
+│  │ (Dynamic   │◄──│ (5-min TTL)  │   │  (M-Pesa STK)     │  │
+│  │  Menus)    │   │ Plans/Prices │   └────────┬───────────┘  │
+│  └────────────┘   └──────────────┘            │               │
+│                                               ▼               │
+│  ┌────────────┐   ┌──────────────┐   ┌────────────────────┐  │
+│  │   Britam   │   │  HealthX     │   │  Notification      │  │
+│  │  Insurance │   │  Boda/       │   │  SMS + WhatsApp    │  │
+│  │   API      │   │  Mwananchi   │   │  + Email           │  │
+│  └────────────┘   └──────────────┘   └────────────────────┘  │
+│                                                                │
+├──────────────────────────────────────────────────────────────┤
+│  MariaDB/MySQL (Connection Pool)  │  Node-Cache (Sessions)   │
+└──────────────────────────────────────────────────────────────┘
+│       OpenTelemetry + Sentry + New Relic + DataDog            │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Runtime** | Node.js + Express v5.1 |
+| **Database** | MariaDB/MySQL (mysql2/promise, 10–100 connection pool) |
+| **Caching** | node-cache (15-min TTL for sessions, 5-min for menus) |
+| **Logging** | Winston (daily rotation) + Pino (multi-transport) |
+| **APM** | OpenTelemetry (OTLP → Jaeger/Grafana Tempo) |
+| **Error Tracking** | Sentry |
+| **Monitoring** | New Relic + DataDog StatsD |
+| **Security** | Helmet (security headers) + CORS |
+| **Payments** | Safaricom M-Pesa (Daraja API — STK Push) |
+| **Insurance** | Britam REST API (token + subscription key auth) |
+| **SMS** | VasPro SMS Gateway |
+| **WhatsApp** | Meta WhatsApp Cloud API v22.0 |
+| **Email** | Nodemailer |
+| **Scheduling** | node-cron |
+| **Process Manager** | PM2 |
+
+### USSD Menu Structure (7 Services)
+
+```
+*384*8888#
+├── 1: Doctor Consultation (one-time, monthly, quarterly, yearly)
+├── 2: Psychology Services (individual, couple, family, life coaching)
+├── 3: Nutrition Consultation
+├── 4: HealthX Boda Insurance (BodaBoda riders — accident/injury)
+│   └── Plans: Hustler (Basic) · Champee (Standard) · Bazu (Premium)
+│   └── Benefits: Accidental death, hospitalization cash, ambulance
+│   └── Flows: Buy → KYC → M-Pesa → Policy | Renew | Claim | Opt-out
+├── 5: HealthX Mwananchi Insurance (General public — funeral/health)
+│   └── Final expense: KES 25K–500K | Hospitalization: KES 500–2,500/day
+├── 6: Afya Daily (SMS-based curated health tips subscription)
+└── 7: Settings (Profile, Next of Kin, Policy History)
+```
+
+### Key Integrations
+
+| Integration | Details |
+|-------------|----------|
+| **M-Pesa STK Push** | Payment prompt → callback → automatic policy creation. Transaction logging with retry (max 3). Account refs: `BODABASIC`, `MWANANCHISTANDARD`, etc. |
+| **Britam Insurance** | REST API for underwriting. Products: Morio (Boda), Mwananchi (Family). Token + subscription key auth. Fallback to local policy on API failure. |
+| **HealthX Boda API** | Rider registration → policy number + coverage dates. Header-based auth (client_id/secret). Policy cancellation for opt-outs. |
+| **HealthX Mwananchi API** | Family insurance registration. Britam-backed funeral expense + hospitalization coverage. |
+| **VasPro SMS** | Direct SMS delivery for notifications, claim instructions, renewal reminders. DB-cached templates with variable substitution. |
+| **WhatsApp Cloud API** | Meta Graph API v22.0 for Business template messages. Dual-channel with SMS for critical notifications. |
+| **Email (Nodemailer)** | Purchase confirmations, claim receipts. Async (non-blocking to USSD response). |
+
+### Payment & Policy Flow
+
+```
+User selects insurance plan
+  → KYC collection (Name → ID → DOB → Gender)
+  → Confirmation screen with plan details
+  → M-Pesa STK Push sent to phone
+  → User completes payment on M-Pesa
+  → Callback received at /api/v1/ussd/mpesa/callback
+  → Policy created via Britam/HealthX API
+  → SMS + Email + WhatsApp confirmation
+  → Policy stored in DB with coverage dates
+```
+
+### KYC & Session Management
+
+- Multi-step validation: Full Name → ID (6–9 digits) → DOB (DDMMYYYY) → Gender
+- Existing KYC cached to skip re-entry for returning users
+- Session tracking with 15-min expiry (database-backed, survives app restart)
+- Menu code parsing (0 = back, 00 = main menu) with state preservation
+- Full audit logging of all USSD interactions
+
+### Database Schema (8 USSD Tables)
+
+| Table | Purpose |
+|-------|----------|
+| `customer_kyc` | User KYC data (name, ID, DOB, gender, verification) |
+| `customer_nok` | Next of Kin information |
+| `ussd_session_progress` | Active session state tracking |
+| `customer_policies` | Policies created from M-Pesa callbacks |
+| `pending_purchases` | Intermediate records awaiting payment |
+| `ussd_transactions` | M-Pesa transaction logs |
+| `ussd_logs` | Audit trail of all interactions |
+| `sms_templates` | Templated SMS messages (cached at startup) |
+
+### Monitoring & Observability
+
+- **OpenTelemetry** — Distributed tracing across all operations
+- **Sentry** — Error tracking with full context
+- **New Relic** — Application performance monitoring
+- **DataDog** — StatsD metrics (ussd.requests.total, ussd.request.duration)
+- **Winston** — Daily-rotated file logging + separate error logs
+- **Pino** — Structured JSON logging (multi-transport)
+
+### Automated Background Jobs
+
+| Job | Purpose |
+|-----|----------|
+| **Session Expiry Cron** | Expires inactive USSD sessions |
+| **Policy Reminder Cron** | Sends renewal reminders x days before expiry |
+| **Policy Recovery Cron** | Retries failed Britam API calls / policy creations |
+| **Insurance Reminders** | Product-specific renewal campaigns |
+
+### Notable Technical Features
+
+- **Dynamic Menu Builder** — USSD menus generated from DB-cached service/plan/pricing data (5-min refresh)
+- **Policy Retry Engine** — Automatic retry for failed API calls with date preservation across retries
+- **Dual-Channel Notifications** — SMS + WhatsApp for critical messages (claim instructions, confirmations)
+- **Connection Pooling** — 10–100 MariaDB connections with health monitoring
+- **Template Variables** — `{policy_number}`, `{coverage_end}`, `{phone}` in DB-stored templates
+- **Admin Endpoints** — Cache clear/refresh, manual reminder triggers, policy recovery
 
 ---
 
