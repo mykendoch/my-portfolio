@@ -16,7 +16,8 @@
 4. [Smart Shift Planner — AI-Driven Gig Economy Scheduler](#4--smart-shift-planner--ai-driven-gig-economy-scheduler)
 5. [HealthX Dawa — Pharmaceutical E-Commerce Platform](#5--healthx-dawa--pharmaceutical-e-commerce-platform)
 6. [HealthX USSD — Telemedicine & Micro-Insurance USSD Platform](#6--healthx-ussd--telemedicine--micro-insurance-ussd-platform)
-7. [Skills & Technology Summary](#-skills--technology-summary)
+7. [HXA STK Push Initiator — M-Pesa Payment Collection System](#7--hxa-stk-push-initiator--m-pesa-payment-collection-system)
+8. [Skills & Technology Summary](#-skills--technology-summary)
 
 ---
 
@@ -717,6 +718,108 @@ User selects insurance plan
 - **Connection Pooling** — 10–100 MariaDB connections with health monitoring
 - **Template Variables** — `{policy_number}`, `{coverage_end}`, `{phone}` in DB-stored templates
 - **Admin Endpoints** — Cache clear/refresh, manual reminder triggers, policy recovery
+
+---
+
+## 7. 💳 HXA STK Push Initiator — M-Pesa Payment Collection System
+
+> **Automated payment collection for HealthX Africa healthcare subscriptions.**  
+> Django-based system integrating Safaricom M-Pesa STK Push to silently initiate mobile money payments for healthcare service packages.
+
+### Architecture
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    KONG API GATEWAY                          │
+│              (SSL · Rate Limiting · Routing)                 │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │              Django Application (Gunicorn)             │  │
+│  │                                                        │  │
+│  │  ┌──────────┐  ┌──────────┐  ┌───────────────────┐   │  │
+│  │  │  Admin   │  │  M-Pesa  │  │  Signal Handlers  │   │  │
+│  │  │Dashboard │  │   API    │  │  (Auto-triggers)  │   │  │
+│  │  └──────────┘  └──────────┘  └───────────────────┘   │  │
+│  │                                                        │  │
+│  │  ┌──────────┐  ┌──────────┐  ┌───────────────────┐   │  │
+│  │  │ Product  │  │ Payment  │  │  STK Trigger      │   │  │
+│  │  │ Catalog  │  │ Records  │  │  (Initiation)     │   │  │
+│  │  └──────────┘  └──────────┘  └───────────────────┘   │  │
+│  └────────────────────────────────────────────────────────┘  │
+│                                                              │
+├──────────────────────────────────────────────────────────────┤
+│  PostgreSQL 15   │   Nginx (Reverse Proxy)  │  WhiteNoise   │
+└──────────────────────────────────────────────────────────────┘
+│        Safaricom M-Pesa API  ←→  VasPro SMS Gateway         │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Django 5.1.7 + Django REST Framework 3.15.2 |
+| **Database** | PostgreSQL 15 (Docker) |
+| **Admin UI** | Jazzmin 3.0.1 (Modern Django Admin theme) |
+| **App Server** | Gunicorn + WhiteNoise |
+| **Reverse Proxy** | Nginx + Kong API Gateway |
+| **Payments** | M-Pesa STK Push (Safaricom Daraja API) |
+| **SMS Notifications** | VasPro SMS Gateway |
+| **Config Management** | python-decouple (Environment variables) |
+| **Containerization** | Docker + Docker Compose |
+
+### Healthcare Service Packages
+
+| Package | Duration | Price (KSH) |
+|---------|----------|-------------|
+| Mental Health Services | 12 / 3 / 1 months | 8,995 / 2,995 / 1,995 |
+| Maternal Care (Nurture Mama) | 12 months | 9,000 |
+| Chronic Illness Management | 12–13 months | 16,000 |
+| Family Care Plans | 12 / 3 / 1 months | 8,995 / 3,595 / 1,395 |
+| Individual Care Plans | 12 / 3 / 1 months | 2,995 / 995 / 795 |
+
+### Core Workflow
+
+1. **Admin creates STK Trigger** — Enters patient phone, MRN, product, and amount
+2. **Signal auto-fires** — Django `post_save` signal initiates M-Pesa STK Push
+3. **OAuth + STK Push** — Fetches access token, generates encrypted password, calls Safaricom API
+4. **Patient receives prompt** — Silent push to patient's phone for payment confirmation
+5. **Callback processing** — M-Pesa posts transaction result to webhook endpoint
+6. **SMS confirmation** — On success, sends payment receipt via VasPro SMS API
+7. **Audit trail** — Full transaction logging with status tracking (Pending → Completed/Failed)
+
+### Data Models
+
+| Model | Purpose |
+|-------|---------|
+| **Product** | Healthcare service catalog (name, price, duration, department) |
+| **MpesaPayment** | Transaction records (receipt, status, amounts, timestamps) |
+| **StkTrigger** | Payment initiation records (phone, MRN, product, served_by) |
+
+### Admin Dashboard Features
+
+- **Product Management** — Configure healthcare packages with pricing and duration
+- **Payment Dashboard** — Track all M-Pesa transactions with status filtering (Pending/Completed/Failed)
+- **Search & Filter** — By phone number, receipt ID, request ID, date range
+- **Audit Trail** — Auto-tracks which admin initiated each payment request
+- **Custom Jazzmin Theme** — Branded orange accent color scheme with HealthX branding
+
+### API Endpoints
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/stk-push/` | POST | Create STK Trigger (admin-initiated) |
+| `/callback/` | POST | M-Pesa callback webhook receiver |
+| `/test-token/` | GET | Verify M-Pesa access token (debug) |
+
+### Security & Integration
+
+- **CSRF protection** with trusted origins for `pay.healthxafrica.com`
+- **OAuth 2.0** authentication for Safaricom API
+- **Base64 encrypted passwords** with timestamp validation
+- **Environment variable isolation** via python-decouple
+- **External API integration ready** — Stub for forwarding to HIS/ERP systems
 
 ---
 
