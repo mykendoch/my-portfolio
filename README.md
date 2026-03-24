@@ -18,7 +18,8 @@
 6. [HealthX USSD — Telemedicine & Micro-Insurance USSD Platform](#6--healthx-ussd--telemedicine--micro-insurance-ussd-platform)
 7. [HXA STK Push Initiator — M-Pesa Payment Collection System](#7--hxa-stk-push-initiator--m-pesa-payment-collection-system)
 8. [HXA WhatsApp Ads Bot — Conversational Booking & Payments Engine](#8--hxa-whatsapp-ads-bot--conversational-booking--payments-engine)
-9. [Skills & Technology Summary](#-skills--technology-summary)
+9. [Admark Enterprises — Corporate Branding & Promotional Products Website](#9--admark-enterprises--corporate-branding--promotional-products-website)
+10. [Skills & Technology Summary](#-skills--technology-summary)
 
 ---
 
@@ -945,6 +946,107 @@ PostgreSQL 15    M-PESA API       Airtel Money API
 - **Ad attribution tracking** — Full referral capture from Meta ads (source type, headline, body, media) stored per session for campaign ROI analysis
 - **Environment-aware pricing** — Non-production environments auto-override to KES 1 for safe testing
 - **Repository pattern** — Clean separation: Handlers → Services → Repository → PostgreSQL
+
+---
+
+## 9. 🏢 Admark Enterprises — Corporate Branding & Promotional Products Website
+
+> **Production corporate website for Admark Enterprises Limited — a promotional products and branding solutions company in Nairobi, Kenya.**  
+> Product catalog with category browsing, customer enquiry system, career portal, and partner/client showcase.
+
+### Architecture: PHP Server-Side Rendered Website
+
+```
+┌──────────────────────────────────────────────────────────┐
+│              APACHE / CPANEL HOSTING                      │
+│            (SSL · .htaccess · PHP 7+)                    │
+├──────────────────────────────────────────────────────────┤
+│                                                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
+│  │   Product    │  │   Customer   │  │   Career     │   │
+│  │   Catalog    │  │   Enquiry    │  │   Portal     │   │
+│  │  (Browse &   │  │   System     │  │  (Job List)  │   │
+│  │   Search)    │  │  (Email)     │  │              │   │
+│  └──────────────┘  └──────────────┘  └──────────────┘   │
+│                                                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
+│  │   Contact    │  │   Partner    │  │   PDF        │   │
+│  │   & Maps     │  │   Showcase   │  │   Catalog    │   │
+│  │  (Google)    │  │  (Carousel)  │  │   Download   │   │
+│  └──────────────┘  └──────────────┘  └──────────────┘   │
+│                                                          │
+├──────────────────────────────────────────────────────────┤
+│        MySQL / MariaDB      │     PHP mail()            │
+└──────────────────────────────────────────────────────────┘
+```
+
+### Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Backend** | PHP 7+ (Server-side rendered) |
+| **Database** | MySQL / MariaDB |
+| **Frontend** | HTML5 + CSS3 + Bootstrap + jQuery |
+| **Icons** | Font Awesome |
+| **Email** | PHP `mail()` with input sanitization |
+| **Carousel** | Owl Carousel + jCarousel |
+| **Maps** | Google Maps Embed |
+| **Server** | Apache (cPanel hosting) |
+
+### Features
+
+| Module | Description |
+|--------|-------------|
+| **Homepage** | Hero carousel, top-selling products, category grid, company overview |
+| **Product Catalog** | Browse by category with search, product detail pages with enquiry forms |
+| **Customer Enquiry** | Quote request form — sends product details + customer info via email to sales team |
+| **PDF Catalog** | Downloadable full product catalog (PDF) |
+| **Career Portal** | Job listings with detailed position descriptions and application instructions |
+| **About Us** | Company vision, mission, and core values |
+| **Partners** | Carousel showcasing partner company logos |
+| **Our Clients** | Ministry of Health, KENHA, and other notable client logos |
+| **Contact Us** | Contact form, office location, embedded Google Maps |
+
+### Product Categories
+
+Computers & Accessories · Auto Items · Bags · Caps & Hats · Clothing · Flash Drives · Keyrings · Mugs · Office Supplies · Pens · Phones & Accessories · Stationery · Technology · Watches & Clocks
+
+### Security Measures
+
+- Prepared statements (MySQLi) for database queries
+- Input sanitization with `htmlspecialchars()` and `filter_var()`
+- Email validation before form submission
+- Environment-based database credentials
+- Error logging (not exposed to users)
+
+### Project Structure
+
+```
+├── index.php              # Homepage — hero carousel, top sellers, categories
+├── header.php             # Navigation bar (included in all pages)
+├── footer.php             # Footer with contact info & links
+├── connect.php            # Database connection (env-based credentials)
+├── product.php            # Product detail page with enquiry form
+├── category.php           # Product listing by category with search
+├── catalog.php            # PDF catalog download handler
+├── about_us.php           # Company vision, mission, core values
+├── contact_us.php         # Contact form + embedded Google Maps
+├── career.php             # Job listings portal
+├── career1.php            # Job detail: Business Development Officer
+├── career2.php            # Job detail: Office Assistant
+├── partners.php           # Partner logos carousel
+├── our-client.php         # Client logos display
+├── send_mail.php          # Enquiry email handler (sanitized inputs)
+└── catalog/
+    └── Admarkproducts.pdf # Downloadable product catalog
+```
+
+### Deployment
+
+- **Hosting:** cPanel shared hosting (Apache)
+- **Domain:** admark.co.ke
+- **Database:** MySQL via cPanel
+- **Email:** PHP native mail with server SMTP
 
 ---
 
