@@ -14,7 +14,8 @@
 2. [HMIS Web — Hospital Management Information System](#2--hmis-web--hospital-management-information-system)
 3. [MedCom HMIS — Legacy Healthcare Desktop System](#3--medcom-hmis--legacy-healthcare-desktop-system)
 4. [Smart Shift Planner — AI-Driven Gig Economy Scheduler](#4--smart-shift-planner--ai-driven-gig-economy-scheduler)
-5. [Skills & Technology Summary](#-skills--technology-summary)
+5. [HealthX Dawa — Pharmaceutical E-Commerce Platform](#5--healthx-dawa--pharmaceutical-e-commerce-platform)
+6. [Skills & Technology Summary](#-skills--technology-summary)
 
 ---
 
@@ -448,12 +449,130 @@ Auth · Shifts · Predictions · Analytics · Admin Management · Accuracy Metri
 
 ---
 
+## 5. 💊 HealthX Dawa — Pharmaceutical E-Commerce Platform
+
+> **Full-featured online pharmacy serving both prescription and OTC drug sales in Kenya.**
+> Complete e-commerce platform with M-Pesa & PesaPal payments, prescription fulfillment, telehealth consultations, logistics integration, and multi-role admin dashboard.
+
+### Architecture: PHP MVC E-Commerce Platform
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                    APACHE / NGINX                         │
+│              (SSL · .htaccess Routing)                    │
+├──────────────────────────────────────────────────────────┤
+│                                                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
+│  │   Customer    │  │    Admin     │  │    API       │   │
+│  │   Frontend    │  │  Dashboard   │  │  Endpoints   │   │
+│  │  (22 pages)   │  │ (15 modules) │  │  (12 routes) │   │
+│  └──────────────┘  └──────────────┘  └──────────────┘   │
+│                                                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
+│  │  M-Pesa STK  │  │  PesaPal v3  │  │ Fargo Courier│   │
+│  │   Payment    │  │   Payment    │  │  Logistics   │   │
+│  └──────────────┘  └──────────────┘  └──────────────┘   │
+│                                                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
+│  │   Google     │  │  SMS/Email   │  │ Prescription │   │
+│  │    OAuth     │  │ Notifications│  │ Fulfillment  │   │
+│  └──────────────┘  └──────────────┘  └──────────────┘   │
+│                                                          │
+├──────────────────────────────────────────────────────────┤
+│  MySQL/MariaDB  │  PHP Sessions  │  PHPMailer (SMTP)    │
+└──────────────────────────────────────────────────────────┘
+```
+
+### Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Backend** | PHP 7.4+ (Custom MVC architecture) |
+| **Database** | MySQL / MariaDB |
+| **Frontend** | HTML5 + CSS3 + Bootstrap 5.3 + Vanilla JS |
+| **Payments** | M-Pesa STK Push + PesaPal v3 API |
+| **Auth** | PHP Sessions + Google OAuth + Facebook OAuth + 2FA (SMS OTP) |
+| **Email** | PHPMailer (Microsoft 365 / Exchange SMTP) |
+| **SMS** | VasPro SMS API |
+| **Logistics** | Fargo Courier API |
+| **Icons** | Font Awesome 6.4 |
+| **Server** | Apache / Nginx with SSL |
+
+### Customer Features (22 Pages)
+
+| Module | Features |
+|--------|----------|
+| **Product Shop** | Advanced filtering (category, subcategory, price range, brand, Rx/OTC type), product details, image gallery, reviews |
+| **Cart & Checkout** | Hybrid cart (products + services), coupon integration, multiple delivery zones, express & standard options, smart pricing |
+| **Prescription Flow** | Upload prescription image, request doctor prescription, Rx/OTC/Mixed order prefixes (RX-, OTC-, MX-), verification workflow |
+| **Telehealth** | Doctor, pharmacist, nutritionist, psychologist & wellness consultations with OTP-verified booking |
+| **Wellness Packages** | Lab test packages (gender-targeted), home-delivery option, featured wellness programs |
+| **Order Tracking** | Dynamic timeline (Submitted → Consultation → Payment → Processing → Ready → Dispatched → Delivered → Completed) |
+| **Payments** | M-Pesa STK Push, PesaPal multi-channel, insurance-integrated checkout |
+| **Account** | Profile management, saved delivery addresses, wishlist, order history, 2FA opt-in |
+
+### Admin Dashboard (15 Modules)
+
+| Module | Capabilities |
+|--------|--------------|
+| **Products** | Add/edit/delete, stock management with reorder levels, bulk actions, prescription-required tagging, image uploads |
+| **Orders** | Full fulfillment workflow (Pending → Received → Preparing → Ready → Dispatched → Delivered → Completed), SMS notifications, stock deduction |
+| **Prescriptions** | Approve/reject, medication assignment from product DB, pricing, dispatch tracking, TAT monitoring |
+| **Categories** | Hierarchical categories with icons |
+| **Users** | Role-based management (customer, pharmacist, admin, delivery), status & password control |
+| **Permissions** | Granular permission system for staff access control |
+| **Reports** | Sales analytics (daily/weekly/monthly/yearly), inventory analytics, TAT & delivery performance, user metrics |
+| **Fargo Courier** | Shipment creation, real-time tracking, status updates, API integration |
+| **M-Pesa Transactions** | Transaction history, callback logs, reconciliation |
+| **Email & SMS** | Multi-channel communication with context-aware templates |
+| **Logs** | System activity logs and audit trail |
+
+### Payment Integrations
+
+**M-Pesa (Kenya Mobile Money):**
+- STK Push — prompt payment directly from customer's phone
+- Transaction logging with retry logic (max 3 retries)
+- Callback handling with order status auto-update
+- Payment audit trail & reconciliation
+
+**PesaPal (Multi-Channel Gateway):**
+- API v3 with OAuth token management
+- IPN (Instant Payment Notification) webhooks
+- Transaction verification & status queries
+- Support for cards, mobile money, and bank transfers
+
+### Logistics & Delivery
+
+| Feature | Details |
+|---------|---------|
+| **Delivery Zones** | Nairobi same-day express + nationwide 24-48hr standard + HQ pickup |
+| **Dynamic Pricing** | Per-zone delivery fees with express premiums |
+| **Fargo Courier** | API integration for shipment creation and real-time tracking |
+| **Fulfillment Pipeline** | 7-stage lifecycle with timestamps and TAT calculation |
+| **Address Management** | Multiple saved addresses per user with zone association |
+
+### Security
+
+- CSRF token validation on all forms
+- Prepared statements (MySQLi) — SQL injection prevention
+- Account lockout after 5 failed attempts (15-minute cooldown)
+- Login history and suspicious activity monitoring
+- Password hashing with PHP `PASSWORD_DEFAULT`
+- SSL/TLS enforcement
+
+### Database Schema (21+ Tables)
+
+Users · Products · Categories · Orders · Order Items · Cart · Wishlist · Prescriptions · File Uploads · Delivery Zones · M-Pesa Transactions · M-Pesa Callbacks · Payment Audit Log · Payment Analytics · Payment Reconciliation · OTP Requests · Login History · Security Audit Log · Pharmacy Settings · Pharmacy License
+
+---
+
 ## 🧰 Skills & Technology Summary
 
 ### Languages
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-777BB4?style=flat-square&logo=php&logoColor=white)
 ![Java](https://img.shields.io/badge/Java-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
 ![SQL](https://img.shields.io/badge/SQL-4479A1?style=flat-square&logo=postgresql&logoColor=white)
 
@@ -472,6 +591,7 @@ Auth · Shifts · Predictions · Analytics · Admin Management · Accuracy Metri
 
 ### Databases & ORM
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat-square&logo=postgresql&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&logoColor=white)
 ![MariaDB](https://img.shields.io/badge/MariaDB-003545?style=flat-square&logo=mariadb&logoColor=white)
 ![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=flat-square&logo=prisma&logoColor=white)
@@ -493,6 +613,7 @@ Auth · Shifts · Predictions · Analytics · Admin Management · Accuracy Metri
 ### Payments
 ![Stripe](https://img.shields.io/badge/Stripe-008CDD?style=flat-square&logo=stripe&logoColor=white)
 ![M-Pesa](https://img.shields.io/badge/M--Pesa-4CAF50?style=flat-square&logo=money&logoColor=white)
+![PesaPal](https://img.shields.io/badge/PesaPal-00457C?style=flat-square&logo=paypal&logoColor=white)
 
 ---
 
