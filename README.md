@@ -26,38 +26,31 @@
 ## 1. 🐄 AgriFarm AI — AI-Powered Dairy Farm Management Platform
 
 > **Smart herd management SaaS built specifically for African dairy farmers.**  
-> Subscription-based platform with AI-powered disease diagnosis, milk anomaly detection, and M-Pesa mobile payments.
+> Subscription-based platform with AI-powered diagnostics, production analytics, and mobile money payments.
 
-### Architecture: 12 Microservices
+### Architecture Overview
+
+Distributed microservices architecture with API gateway, dedicated services for each business domain, and a modern React frontend. Full production observability stack with distributed tracing, metrics collection, and centralized logging.
 
 ```
 ┌──────────────────────────────────────────────────────────┐
-│                    NGINX API GATEWAY                      │
+│                    API GATEWAY                            │
 │              (SSL · Rate Limiting · Routing)               │
 ├──────────────────────────────────────────────────────────┤
 │                                                            │
-│  ┌─────────┐ ┌─────────┐ ┌──────────┐ ┌──────────────┐   │
-│  │  Auth    │ │  Cow    │ │  Health  │ │ Reproduction │   │
-│  │ Service  │ │ Service │ │ Service  │ │   Service    │   │
-│  │ :3001   │ │ :3002   │ │ :3003   │ │   :3005     │   │
-│  └─────────┘ └─────────┘ └──────────┘ └──────────────┘   │
+│     Multiple Domain-Specific Microservices                 │
+│     (Authentication · Herd Management · Health ·           │
+│      Production · AI · Payments · Notifications ·          │
+│      Reports · Media)                                      │
 │                                                            │
-│  ┌─────────┐ ┌─────────┐ ┌──────────┐ ┌──────────────┐   │
-│  │  Milk   │ │ Notif.  │ │   AI     │ │   Payment    │   │
-│  │ Service │ │ Service │ │ Service  │ │   Service    │   │
-│  │ :3004   │ │ :3006   │ │ :3007   │ │   :3008     │   │
-│  └─────────┘ └─────────┘ └──────────┘ └──────────────┘   │
-│                                                            │
-│  ┌─────────┐ ┌─────────┐ ┌──────────────────────────┐    │
-│  │ Report  │ │ Media   │ │      React Frontend      │    │
-│  │ Service │ │ Service │ │         :3000            │    │
-│  │ :3009   │ │ :3010   │ │                          │    │
-│  └─────────┘ └─────────┘ └──────────────────────────┘    │
+│  ┌──────────────────────────────────────────────────┐     │
+│  │              React Frontend (SPA)                 │     │
+│  └──────────────────────────────────────────────────┘     │
 │                                                            │
 ├──────────────────────────────────────────────────────────┤
-│  PostgreSQL 16  │  Redis 7 (Cache/Queue)  │  MinIO (S3)  │
+│  PostgreSQL  │  Redis (Cache & Queue)  │  Object Storage  │
 └──────────────────────────────────────────────────────────┘
-│           OpenTelemetry → Prometheus → Grafana + Loki     │
+│              Observability & Monitoring Stack              │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -66,63 +59,38 @@
 | Layer | Technology |
 |-------|-----------|
 | **Frontend** | React 18 + TypeScript + Vite |
-| **Backend** | Node.js 20 + Express (12 microservices) |
+| **Backend** | Node.js 20 + Express (Microservices) |
 | **Database** | PostgreSQL 16 + Redis 7 |
 | **ORM** | Prisma |
-| **API Gateway** | Nginx (SSL termination, rate limiting) |
-| **File Storage** | MinIO (S3-compatible object storage) |
-| **Monitoring** | OpenTelemetry + Prometheus + Grafana + Loki |
+| **API Gateway** | Nginx |
+| **File Storage** | S3-compatible object storage |
+| **Monitoring** | OpenTelemetry + Prometheus + Grafana |
 | **Payments** | Stripe + M-Pesa (Safaricom Daraja API) |
-| **SMS/Notifications** | Africa's Talking API |
-| **AI Models** | OpenAI GPT-4o + Anthropic Claude |
-| **Queue** | BullMQ (Redis-backed job queue) |
+| **Notifications** | SMS + Email |
+| **AI** | LLM-powered diagnostics + image analysis |
+| **Queue** | Redis-backed job queue |
 | **Containerization** | Docker + Docker Compose |
 | **CI/CD** | GitHub Actions |
 
-### Microservices Breakdown
-
-| Service | Port | Responsibilities |
-|---------|------|-----------------|
-| **auth-service** | 3001 | JWT authentication, user management, subscription enforcement, account lockout |
-| **cow-service** | 3002 | Cow profiles, genealogy tree tracking, lifecycle management |
-| **health-service** | 3003 | Disease records, vaccinations, deworming schedules, dry cow tracking |
-| **milk-service** | 3004 | Milk recording, production analytics, AI-powered anomaly detection |
-| **reproduction-service** | 3005 | Heat cycle tracking, insemination records, pregnancy monitoring, calving management |
-| **notification-service** | 3006 | Email + SMS notifications via Africa's Talking API |
-| **ai-service** | 3007 | Claude/OpenAI chatbot, health predictions, image/video analysis |
-| **payment-service** | 3008 | Stripe + M-Pesa integration, subscription billing |
-| **report-service** | 3009 | PDF + Excel report generation (Puppeteer/PDFKit) |
-| **media-service** | 3010 | Image/video uploads, processing (Sharp), MinIO storage |
-
 ### Key Features
 
-- **AI-Powered Disease Advisor** — Chat with an AI veterinarian; upload photos/videos of sick cows for diagnosis
-- **Milk Anomaly Detection** — ML-based detection of unusual milk production patterns
-- **Heat Cycle Prediction** — AI predicts optimal insemination timing
-- **Herd Health Score** — Automated scoring of overall herd wellness
-- **Genealogy Tracking** — Full lineage tracking (dam, sire, maternal grandmothers)
-- **M-Pesa Mobile Payments** — Kenya's most popular payment method, integrated natively
-- **Multi-Role Access Control** — FARMER, FARM_MANAGER, FARM_WORKER, ADMIN roles
-- **Real-Time SMS Alerts** — Vaccination reminders, calving alerts, health warnings
-- **Comprehensive Reporting** — PDF and Excel reports for milk production, financials, herd health
-- **Super Admin Portal** — SaaS management dashboard for platform administration
+- **AI-Powered Diagnostics** — Intelligent health analysis with image and video support
+- **Production Analytics** — ML-based anomaly detection and trend analysis
+- **Reproductive Management** — Cycle tracking and predictive scheduling
+- **Herd Health Scoring** — Automated wellness assessment across the herd
+- **Genealogy Tracking** — Full lineage and breeding history
+- **Mobile Money Payments** — Native M-Pesa integration for subscriptions
+- **Multi-Role Access Control** — Granular permissions across multiple user roles
+- **Real-Time Alerts** — SMS notifications for critical events
+- **Comprehensive Reporting** — PDF and Excel exports for production, financials, and health
+- **SaaS Admin Portal** — Platform management dashboard with subscription tiers
 
-### Subscription Tiers (SaaS Model)
+### Platform Scale
 
-| Tier | Price (KES/mo) | Cows | AI Chats | History |
-|------|----------------|------|----------|---------|
-| Free | 0 | 10 | 3/month | 7 days |
-| Basic | 1,500 | 50 | 20/month | 90 days |
-| Professional | 4,500 | 300 | Unlimited | Unlimited |
-| Enterprise | 12,000 | Unlimited | Unlimited | Unlimited + API |
-
-### Frontend (26 Pages)
-
-Dashboard · Cow Profiles · Health Records · Reproduction Tracking · Milk Recording · Analytics (Sales, Revenue, Profit/Loss) · AI Advisor · Payment & Subscription · Reports · Super Admin Portal · User Management · Settings
-
-### Observability Stack
-
-Full production-grade monitoring with OpenTelemetry instrumentation across all 12 services, Prometheus metrics collection, Grafana dashboards, and Loki log aggregation.
+- Multiple microservices with independent scaling
+- Tiered subscription model (Free through Enterprise)
+- 26+ frontend pages covering all farm management workflows
+- Full production observability across all services
 
 ---
 
@@ -181,37 +149,35 @@ Platform (Super Admin)
   └── Organization (Hospital Group)
         ├── Branch A (Main Hospital)
         │     ├── Users (doctors, nurses, admin)
-        │     └── All clinical/financial data (branch-scoped)
+        │     └── Clinical & financial data (branch-scoped)
         ├── Branch B (Satellite Clinic)
         │     ├── Users
         │     └── Data (fully isolated)
-        └── License (MONTHLY/QUARTERLY/ANNUAL/LIFETIME)
+        └── License Management
 ```
 
-- **Branch-scoped data isolation** — Every table has a `branchId` foreign key
-- **Branch-aware authentication** — Login flow: Select Org → Select Branch → Enter Credentials
-- **JWT payload** includes `organizationId` + `branchId` for automatic scoping
+- **Branch-scoped data isolation** — Complete data separation between branches
+- **Branch-aware authentication** — Multi-step login with organization and branch selection
+- **Token-scoped access** — Authentication tokens carry organization and branch context
 
 ### SaaS Licensing Engine
 
-- License formats: `HMIS-XXXX-XXXX-XXXX-XXXX`
-- Duration types: MONTHLY / QUARTERLY / ANNUAL / LIFETIME
-- Status lifecycle: `ACTIVE → GRACE_PERIOD → EXPIRED / SUSPENDED`
-- **LicenseGuard** — Global NestJS guard blocks all requests when license is expired
-- Phone-home validation (hourly cron) with 5-minute Redis cache
-- Automated expiry reminders: 30 / 15 / 7 / 3 / 1 days before expiry
+- Custom license key generation and validation
+- Multiple duration types with configurable billing cycles
+- Status lifecycle management with grace periods
+- Automated expiry reminders and enforcement
 - Full audit trail for all license events
 
 ### Phase 1 Features (Complete)
 
 | Module | Features |
 |--------|----------|
-| **Infrastructure** | Docker Compose orchestration, OpenTelemetry + Winston logging, Nginx reverse proxy, health checks (K8s-ready), global exception filters, request ID middleware |
-| **Multi-Tenancy** | Organization + Branch hierarchy, branch-scoped data isolation, branch-aware login, per-branch username uniqueness |
-| **Licensing** | License CRUD, key generation, status lifecycle, LicenseGuard, grace periods, phone-home, expiry reminders, audit trail |
-| **Super Admin** | Organization provisioning (one-click), branch management, license issuance/renewal/suspension, dashboard + audit log |
-| **Authentication** | Branch-aware JWT (access + refresh tokens), BCrypt password hashing, 2FA via TOTP, account lockout (5 attempts / 30 min) |
-| **RBAC** | Page-name-based rights system (SystemPage model), admin-only user CRUD, branch-scoped user management |
+| **Infrastructure** | Container orchestration, structured logging, reverse proxy, health checks, global exception handling |
+| **Multi-Tenancy** | Organization + Branch hierarchy, branch-scoped data isolation, branch-aware authentication |
+| **Licensing** | License management, key generation, status lifecycle, enforcement guards, grace periods, expiry reminders |
+| **Super Admin** | Organization provisioning, branch management, license operations, dashboard + audit log |
+| **Authentication** | Branch-aware JWT, password hashing, 2FA via TOTP, account lockout protection |
+| **RBAC** | Page-level rights system, role-based user management, branch-scoped permissions |
 
 ### Planned Phases
 
@@ -291,9 +257,8 @@ Platform (Super Admin)
 
 ### Production Deployment
 
-- **Live at:** Komarock Modern Healthcare, Nairobi, Kenya
+- **Live at:** A healthcare facility in Nairobi, Kenya
 - **Users:** Doctors, nurses, pharmacists, lab technicians, billing clerks, administrators
-- **Contact:** P.O Box 23728-00100 Nairobi | Tel: 0730 96 30 00
 
 > 🔄 **Currently being migrated** to HMIS Web (Project #2 above) for cloud-native, multi-tenant capability.
 
@@ -363,83 +328,27 @@ Platform (Super Admin)
 
 ### Machine Learning Pipeline
 
-#### Hybrid Earnings Predictor (2-Layer Model)
+#### Hybrid Earnings Predictor
 
-**Layer 1 — Deterministic Multiplier Model:**
-- UK-calibrated base rates by location (£12–£28/hr across 14 location categories)
-- Time-of-day multipliers (24-hour curve, peak 20:00–21:00 at 2.3×)
-- Day-of-week multipliers (Saturday highest at 1.35×)
-- Real-time demand scaling (0.8× – 1.5×)
+Two-layer prediction model combining deterministic business rules with machine learning:
 
-**Layer 2 — RandomForestRegressor (when historical data exists):**
-- Hyperparameters: `n_estimators=100, max_depth=8, random_state=42`
-- Features: hour, day_of_week, location, demand_level
-- Validation: 5-fold cross-validation with R² scoring
-- Outputs: Feature importance analysis for interpretability
+- **Layer 1** — Rule-based model with location-specific base rates, time-of-day multipliers, day-of-week adjustments, and real-time demand scaling
+- **Layer 2** — Random Forest model trained on historical data when available, with cross-validation and feature importance analysis
 
-#### Demand Forecaster
-- Location-typed demand curves (downtown, airport, residential, etc.)
-- Trend analysis via `scipy.stats.linregress`
-- Peak hour identification with `numpy.argmax`
-- Statistical summary: mean, std, skewness, kurtosis
-
-#### Shift Optimizer
-- Evaluates all 24 start hours × 14 locations in vectorized NumPy pass
-- Ranks shift windows by predicted total earnings
-- Generates personalized multi-location recommendations
-
-#### Accuracy Analyzer
-- Metrics: MAE, MAPE, RMSE, R²
-- Thresholds: Excellent (MAPE ≤10%) · Good (≤15%) · Acceptable (≤20%) · Poor (>20%)
+#### Supporting ML Components
+- **Demand Forecaster** — Location-typed demand curves with trend analysis and peak hour identification
+- **Shift Optimizer** — Evaluates all possible start-time and location combinations to rank optimal shifts
+- **Accuracy Analyzer** — Comprehensive metrics (MAE, MAPE, RMSE, R²) with quality thresholds
 
 ### Income Guarantee Engine
 
-```
-Guarantee Threshold: 90% of predicted earnings
-Top-Up Formula: max(0, predicted × 0.9 − actual)
-Eligibility: Minimum shift hours + compliance checks
-Activation: Automatic when driver meets threshold
-```
+Automatic safety-net system that calculates top-ups when actual earnings fall below a guaranteed threshold. Tracks eligibility, activation rates, and sustainability metrics.
 
-- Tracks: Guarantee log, activation rates, total disbursements
-- Sustainability metrics: Cost-benefit analysis, break-even calculations, scenario planning
+### Frontend Dashboards
 
-### Database Schema (8 Tables)
+**Driver Dashboard** — Earnings prediction, shift recommendations, income guarantee tracking, volatility analysis, performance trends, and analytics
 
-| Table | Purpose |
-|-------|---------|
-| `users` | Admin + driver accounts with role-based access |
-| `shifts` | Shift records with earnings, predictions, status |
-| `shift_details` | Location, type, duration, hourly rate per shift |
-| `surveys` | Worker feedback (Likert 1–5 scale + open text) |
-| `survey_questions` | Fixed question templates (earnings, safety, schedule) |
-| `eligibility_metrics` | Calculated guarantee eligibility scores per driver |
-| `worker_daily_summary` | Aggregated daily earnings and statistics |
-| `ml_predictions` | Generated predictions and model outputs |
-
-### Driver Dashboard (9 Tabs)
-
-1. **Earnings Prediction** — AI predicts hourly earnings by time/location
-2. **Shift Recommendations** — Personalized optimal shifts ranked by potential earnings
-3. **Income Guarantee** — 90% earnings guarantee with automatic top-up calculation
-4. **Guarantee Eligibility** — Track qualification status (hours + compliance metrics)
-5. **Volatility Analysis** — Statistical comparison: stability with vs. without guarantee
-6. **Performance Tracking** — Earnings trends, top locations, efficiency metrics
-7. **Earnings Analytics** — Actual vs. predicted detailed comparison charts
-8. **Survey Feedback** — Submit Likert-scale research surveys
-9. **Activity Log** — Personal action history and audit trail
-
-### Admin Dashboard (9 Tabs)
-
-1. **System Analytics** — Total drivers, shifts, earnings, guarantee activations
-2. **Model Accuracy** — Prediction accuracy metrics vs. target thresholds
-3. **Driver Management** — CRUD, suspend/reactivate, bulk-import, password reset
-4. **Admin Management** — Admin account creation with full audit trail
-5. **Guarantee Overview** — Aggregate stats, activation rates, total disbursements
-6. **Shifts Overview** — Platform-wide shift breakdown by status
-7. **Survey Reports** — Aggregated feedback with anonymized export capability
-8. **Sustainability Dashboard** — Cost-benefit analysis, break-even, scenario planning
-9. **Activity Log** — Complete audit trail of all admin actions
+**Admin Dashboard** — System analytics, model accuracy monitoring, driver management, guarantee overview, survey reports, sustainability metrics, and audit trail
 
 ### API Coverage: 57+ Endpoints
 
@@ -534,79 +443,67 @@ Auth · Shifts · Predictions · Analytics · Admin Management · Accuracy Metri
 ### Payment Integrations
 
 **M-Pesa (Kenya Mobile Money):**
-- STK Push — prompt payment directly from customer's phone
-- Transaction logging with retry logic (max 3 retries)
-- Callback handling with order status auto-update
-- Payment audit trail & reconciliation
+- STK Push for direct mobile payments
+- Real-time callback processing with order status updates
+- Transaction logging and reconciliation
 
 **PesaPal (Multi-Channel Gateway):**
-- API v3 with OAuth token management
-- IPN (Instant Payment Notification) webhooks
-- Transaction verification & status queries
-- Support for cards, mobile money, and bank transfers
+- Multi-channel support: cards, mobile money, bank transfers
+- Webhook-based payment notifications
+- Transaction verification and status queries
 
 ### Logistics & Delivery
 
-| Feature | Details |
-|---------|---------|
-| **Delivery Zones** | Nairobi same-day express + nationwide 24-48hr standard + HQ pickup |
-| **Dynamic Pricing** | Per-zone delivery fees with express premiums |
-| **Fargo Courier** | API integration for shipment creation and real-time tracking |
-| **Fulfillment Pipeline** | 7-stage lifecycle with timestamps and TAT calculation |
-| **Address Management** | Multiple saved addresses per user with zone association |
+- Multiple delivery zones with dynamic pricing
+- Same-day express and standard delivery options
+- Courier API integration for shipment tracking
+- Multi-stage fulfillment pipeline with TAT monitoring
 
 ### Security
 
 - CSRF token validation on all forms
-- Prepared statements (MySQLi) — SQL injection prevention
-- Account lockout after 5 failed attempts (15-minute cooldown)
-- Login history and suspicious activity monitoring
-- Password hashing with PHP `PASSWORD_DEFAULT`
+- Prepared statements for SQL injection prevention
+- Account lockout protection
+- Password hashing with modern algorithms
 - SSL/TLS enforcement
-
-### Database Schema (21+ Tables)
-
-Users · Products · Categories · Orders · Order Items · Cart · Wishlist · Prescriptions · File Uploads · Delivery Zones · M-Pesa Transactions · M-Pesa Callbacks · Payment Audit Log · Payment Analytics · Payment Reconciliation · OTP Requests · Login History · Security Audit Log · Pharmacy Settings · Pharmacy License
 
 ---
 
 ## 6. 📱 HealthX USSD — Telemedicine & Micro-Insurance USSD Platform
 
 > **Production USSD microservice enabling healthcare access on any phone — including feature phones.**  
-> Customers dial `*384*8888#` to purchase telemedicine consultations, micro-insurance, wellness subscriptions, and health content — all paid via M-Pesa. Built for a telehealth company in Nairobi, Kenya.
+> Customers dial a USSD short code to purchase telemedicine consultations, micro-insurance, wellness subscriptions, and health content — all paid via M-Pesa. Built for a telehealth company in Nairobi, Kenya.
 
 ### Architecture: USSD Microservice Platform
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                    Africa's Talking USSD                       │
-│                   POST /api/v1/ussd/callback                  │
+│                    USSD Gateway Provider                      │
+│                   (Inbound USSD Callback)                     │
 ├──────────────────────────────────────────────────────────────┤
 │                                                                │
 │  ┌────────────┐   ┌──────────────┐   ┌────────────────────┐  │
-│  │   Express   │   │  Controller  │   │   USSD Service     │  │
-│  │  Middleware │──►│  (Routing)   │──►│  (Flow Engine)     │  │
-│  │  Helmet     │   │              │   │  1500+ lines       │  │
-│  │  CORS       │   └──────────────┘   └────────┬───────────┘  │
-│  │  Morgan     │                               │               │
-│  └────────────┘                               ▼               │
-│                                                                │
-│  ┌────────────┐   ┌──────────────┐   ┌────────────────────┐  │
-│  │  MenuBuilder│   │ CacheManager │   │  Payment Service   │  │
-│  │ (Dynamic   │◄──│ (5-min TTL)  │   │  (M-Pesa STK)     │  │
-│  │  Menus)    │   │ Plans/Prices │   └────────┬───────────┘  │
+│  │  Web       │   │  Controller  │   │   USSD Flow        │  │
+│  │  Server    │──►│  (Routing)   │──►│   Engine           │  │
+│  │            │   │              │   │                    │  │
+│  └────────────┘   └──────────────┘   └────────┬───────────┘  │
+│                                               │               │
+│  ┌────────────┐   ┌──────────────┐   ┌────────┴───────────┐  │
+│  │  Dynamic   │   │   Cache      │   │  Payment Service   │  │
+│  │  Menu      │◄──│   Manager    │   │  (M-Pesa STK)     │  │
+│  │  Builder   │   │              │   └────────┬───────────┘  │
 │  └────────────┘   └──────────────┘            │               │
 │                                               ▼               │
 │  ┌────────────┐   ┌──────────────┐   ┌────────────────────┐  │
-│  │   Britam   │   │  HealthX     │   │  Notification      │  │
-│  │  Insurance │   │  Boda/       │   │  SMS + WhatsApp    │  │
-│  │   API      │   │  Mwananchi   │   │  + Email           │  │
+│  │  Insurance │   │  Healthcare  │   │  Notification      │  │
+│  │  API       │   │  Product     │   │  SMS + WhatsApp    │  │
+│  │  Client    │   │  APIs        │   │  + Email           │  │
 │  └────────────┘   └──────────────┘   └────────────────────┘  │
 │                                                                │
 ├──────────────────────────────────────────────────────────────┤
-│  MariaDB/MySQL (Connection Pool)  │  Node-Cache (Sessions)   │
+│  MariaDB/MySQL (Connection Pool)  │  In-Memory Cache         │
 └──────────────────────────────────────────────────────────────┘
-│       OpenTelemetry + Sentry + New Relic + DataDog            │
+│              Observability & Monitoring Stack                  │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -614,112 +511,46 @@ Users · Products · Categories · Orders · Order Items · Cart · Wishlist · 
 
 | Layer | Technology |
 |-------|------------|
-| **Runtime** | Node.js + Express v5.1 |
-| **Database** | MariaDB/MySQL (mysql2/promise, 10–100 connection pool) |
-| **Caching** | node-cache (15-min TTL for sessions, 5-min for menus) |
-| **Logging** | Winston (daily rotation) + Pino (multi-transport) |
-| **APM** | OpenTelemetry (OTLP → Jaeger/Grafana Tempo) |
-| **Error Tracking** | Sentry |
-| **Monitoring** | New Relic + DataDog StatsD |
-| **Security** | Helmet (security headers) + CORS |
-| **Payments** | Safaricom M-Pesa (Daraja API — STK Push) |
-| **Insurance** | Britam REST API (token + subscription key auth) |
-| **SMS** | VasPro SMS Gateway |
-| **WhatsApp** | Meta WhatsApp Cloud API v22.0 |
-| **Email** | Nodemailer |
-| **Scheduling** | node-cron |
+| **Runtime** | Node.js + Express |
+| **Database** | MariaDB/MySQL (connection pooling) |
+| **Caching** | In-memory cache for sessions and menu data |
+| **Logging** | Structured logging with daily rotation |
+| **Monitoring** | APM + error tracking + distributed tracing |
+| **Security** | Security headers + CORS |
+| **Payments** | M-Pesa (Safaricom Daraja API — STK Push) |
+| **Insurance** | Third-party insurance REST API |
+| **SMS** | SMS Gateway |
+| **WhatsApp** | Meta WhatsApp Cloud API |
+| **Email** | SMTP integration |
+| **Scheduling** | Cron-based background jobs |
 | **Process Manager** | PM2 |
 
-### USSD Menu Structure (7 Services)
+### USSD Service Offerings
 
-```
-*384*8888#
-├── 1: Doctor Consultation (one-time, monthly, quarterly, yearly)
-├── 2: Psychology Services (individual, couple, family, life coaching)
-├── 3: Nutrition Consultation
-├── 4: HealthX Boda Insurance (BodaBoda riders — accident/injury)
-│   └── Plans: Hustler (Basic) · Champee (Standard) · Bazu (Premium)
-│   └── Benefits: Accidental death, hospitalization cash, ambulance
-│   └── Flows: Buy → KYC → M-Pesa → Policy | Renew | Claim | Opt-out
-├── 5: HealthX Mwananchi Insurance (General public — funeral/health)
-│   └── Final expense: KES 25K–500K | Hospitalization: KES 500–2,500/day
-├── 6: Afya Daily (SMS-based curated health tips subscription)
-└── 7: Settings (Profile, Next of Kin, Policy History)
-```
+- **Doctor Consultations** — Multiple subscription durations
+- **Psychology Services** — Individual, couple, family, and coaching options
+- **Nutrition Consultation**
+- **Micro-Insurance (Riders)** — Accident and injury coverage with tiered plans
+- **Micro-Insurance (General)** — Funeral expense and hospitalization coverage
+- **Health Tips Subscription** — SMS-based curated health content
+- **Account Settings** — Profile, next of kin, policy history management
 
 ### Key Integrations
 
-| Integration | Details |
-|-------------|----------|
-| **M-Pesa STK Push** | Payment prompt → callback → automatic policy creation. Transaction logging with retry (max 3). Account refs: `BODABASIC`, `MWANANCHISTANDARD`, etc. |
-| **Britam Insurance** | REST API for underwriting. Products: Morio (Boda), Mwananchi (Family). Token + subscription key auth. Fallback to local policy on API failure. |
-| **HealthX Boda API** | Rider registration → policy number + coverage dates. Header-based auth (client_id/secret). Policy cancellation for opt-outs. |
-| **HealthX Mwananchi API** | Family insurance registration. Britam-backed funeral expense + hospitalization coverage. |
-| **VasPro SMS** | Direct SMS delivery for notifications, claim instructions, renewal reminders. DB-cached templates with variable substitution. |
-| **WhatsApp Cloud API** | Meta Graph API v22.0 for Business template messages. Dual-channel with SMS for critical notifications. |
-| **Email (Nodemailer)** | Purchase confirmations, claim receipts. Async (non-blocking to USSD response). |
+- **M-Pesa STK Push** — Payment initiation within USSD flow with automatic policy/subscription creation on successful payment
+- **Insurance Underwriting API** — Real-time policy creation and management
+- **Multi-channel Notifications** — SMS + WhatsApp + Email for confirmations and reminders
+- **KYC Collection** — Multi-step identity verification within the USSD session
 
-### Payment & Policy Flow
+### Technical Highlights
 
-```
-User selects insurance plan
-  → KYC collection (Name → ID → DOB → Gender)
-  → Confirmation screen with plan details
-  → M-Pesa STK Push sent to phone
-  → User completes payment on M-Pesa
-  → Callback received at /api/v1/ussd/mpesa/callback
-  → Policy created via Britam/HealthX API
-  → SMS + Email + WhatsApp confirmation
-  → Policy stored in DB with coverage dates
-```
-
-### KYC & Session Management
-
-- Multi-step validation: Full Name → ID (6–9 digits) → DOB (DDMMYYYY) → Gender
-- Existing KYC cached to skip re-entry for returning users
-- Session tracking with 15-min expiry (database-backed, survives app restart)
-- Menu code parsing (0 = back, 00 = main menu) with state preservation
-- Full audit logging of all USSD interactions
-
-### Database Schema (8 USSD Tables)
-
-| Table | Purpose |
-|-------|----------|
-| `customer_kyc` | User KYC data (name, ID, DOB, gender, verification) |
-| `customer_nok` | Next of Kin information |
-| `ussd_session_progress` | Active session state tracking |
-| `customer_policies` | Policies created from M-Pesa callbacks |
-| `pending_purchases` | Intermediate records awaiting payment |
-| `ussd_transactions` | M-Pesa transaction logs |
-| `ussd_logs` | Audit trail of all interactions |
-| `sms_templates` | Templated SMS messages (cached at startup) |
-
-### Monitoring & Observability
-
-- **OpenTelemetry** — Distributed tracing across all operations
-- **Sentry** — Error tracking with full context
-- **New Relic** — Application performance monitoring
-- **DataDog** — StatsD metrics (ussd.requests.total, ussd.request.duration)
-- **Winston** — Daily-rotated file logging + separate error logs
-- **Pino** — Structured JSON logging (multi-transport)
-
-### Automated Background Jobs
-
-| Job | Purpose |
-|-----|----------|
-| **Session Expiry Cron** | Expires inactive USSD sessions |
-| **Policy Reminder Cron** | Sends renewal reminders x days before expiry |
-| **Policy Recovery Cron** | Retries failed Britam API calls / policy creations |
-| **Insurance Reminders** | Product-specific renewal campaigns |
-
-### Notable Technical Features
-
-- **Dynamic Menu Builder** — USSD menus generated from DB-cached service/plan/pricing data (5-min refresh)
-- **Policy Retry Engine** — Automatic retry for failed API calls with date preservation across retries
-- **Dual-Channel Notifications** — SMS + WhatsApp for critical messages (claim instructions, confirmations)
-- **Connection Pooling** — 10–100 MariaDB connections with health monitoring
-- **Template Variables** — `{policy_number}`, `{coverage_end}`, `{phone}` in DB-stored templates
-- **Admin Endpoints** — Cache clear/refresh, manual reminder triggers, policy recovery
+- **Dynamic Menu Builder** — USSD menus generated from cached service and pricing data
+- **Session Management** — Database-backed sessions with configurable expiry
+- **Policy Retry Engine** — Automatic retry for failed external API calls
+- **Multi-channel Notifications** — Dual SMS + WhatsApp for critical messages
+- **Connection Pooling** — Optimized database connections with health monitoring
+- **Template System** — Database-stored message templates with variable substitution
+- **Background Jobs** — Session expiry, policy reminders, retry processing, renewal campaigns
 
 ---
 
@@ -773,55 +604,31 @@ User selects insurance plan
 
 ### Healthcare Service Packages
 
-| Package | Duration | Price (KSH) |
-|---------|----------|-------------|
-| Mental Health Services | 12 / 3 / 1 months | 8,995 / 2,995 / 1,995 |
-| Maternal Care (Nurture Mama) | 12 months | 9,000 |
-| Chronic Illness Management | 12–13 months | 16,000 |
-| Family Care Plans | 12 / 3 / 1 months | 8,995 / 3,595 / 1,395 |
-| Individual Care Plans | 12 / 3 / 1 months | 2,995 / 995 / 795 |
+Configurable catalog of healthcare subscription packages across multiple care categories including mental health, maternal care, chronic illness management, family care, and individual care plans — with flexible billing durations.
 
 ### Core Workflow
 
-1. **Admin creates STK Trigger** — Enters patient phone, MRN, product, and amount
-2. **Signal auto-fires** — Django `post_save` signal initiates M-Pesa STK Push
-3. **OAuth + STK Push** — Fetches access token, generates encrypted password, calls Safaricom API
-4. **Patient receives prompt** — Silent push to patient's phone for payment confirmation
-5. **Callback processing** — M-Pesa posts transaction result to webhook endpoint
-6. **SMS confirmation** — On success, sends payment receipt via VasPro SMS API
-7. **Audit trail** — Full transaction logging with status tracking (Pending → Completed/Failed)
+1. **Admin initiates payment** — Enters patient details and selects service package
+2. **Auto-trigger** — System automatically initiates M-Pesa STK Push
+3. **Patient receives prompt** — Payment request sent directly to patient's phone
+4. **Callback processing** — Transaction result processed via webhook
+5. **SMS confirmation** — Automated receipt sent on successful payment
+6. **Audit trail** — Full transaction logging with status tracking
 
-### Data Models
+### Key Components
 
-| Model | Purpose |
-|-------|---------|
-| **Product** | Healthcare service catalog (name, price, duration, department) |
-| **MpesaPayment** | Transaction records (receipt, status, amounts, timestamps) |
-| **StkTrigger** | Payment initiation records (phone, MRN, product, served_by) |
-
-### Admin Dashboard Features
-
-- **Product Management** — Configure healthcare packages with pricing and duration
-- **Payment Dashboard** — Track all M-Pesa transactions with status filtering (Pending/Completed/Failed)
-- **Search & Filter** — By phone number, receipt ID, request ID, date range
-- **Audit Trail** — Auto-tracks which admin initiated each payment request
-- **Custom Jazzmin Theme** — Branded orange accent color scheme with HealthX branding
-
-### API Endpoints
-
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/stk-push/` | POST | Create STK Trigger (admin-initiated) |
-| `/callback/` | POST | M-Pesa callback webhook receiver |
-| `/test-token/` | GET | Verify M-Pesa access token (debug) |
+- **Product Catalog** — Configurable healthcare packages with pricing and duration management
+- **Payment Dashboard** — Transaction monitoring with status filtering and search
+- **Automated Triggers** — Signal-based payment initiation on record creation
+- **Admin Interface** — Branded admin panel with audit trail and reporting
 
 ### Security & Integration
 
-- **CSRF protection** with trusted origins for `pay.healthxafrica.com`
-- **OAuth 2.0** authentication for Safaricom API
-- **Base64 encrypted passwords** with timestamp validation
-- **Environment variable isolation** via python-decouple
-- **External API integration ready** — Stub for forwarding to HIS/ERP systems
+- CSRF protection with trusted origin configuration
+- OAuth 2.0 authentication for payment API
+- Encrypted credentials with timestamp validation
+- Environment variable isolation
+- Ready for downstream system integration (HIS/ERP)
 
 ---
 
@@ -894,58 +701,33 @@ PostgreSQL 15    M-PESA API       Airtel Money API
 | **Containerization** | Docker + Docker Compose |
 | **Config** | Environment variables with .env auto-loading |
 
-### Service Architecture (6 Services)
+### Service Architecture
 
 | Service | Responsibility |
 |---------|----------------|
 | **WhatsApp Service** | Meta API communication — text, interactive buttons, images |
-| **Message Processor** | Routes text & button responses, detects flow type, manages conversation steps |
-| **Session Manager** | Creates/resumes sessions, 1-hour expiry, auto-new after completed bookings |
-| **Template Service** | Loads & renders WhatsApp message templates from JSON with variable substitution |
-| **M-PESA Service** | OAuth token caching (55 min), STK Push initiation, 1 KES test mode |
-| **Airtel Service** | OAuth + RSA-SHA256 message signing, STK Push, validation/process/enquiry callbacks |
-| **Payment Callback Service** | Processes payment results, updates sessions, sends WhatsApp confirmations |
+| **Message Processor** | Routes incoming messages, detects flow type, manages conversation steps |
+| **Session Manager** | Session lifecycle — creation, resumption, expiry handling |
+| **Template Service** | JSON-driven message template rendering with variable substitution |
+| **Payment Services** | Dual payment provider integration with callback processing |
 
 ### Booking Flow
 
-1. **Ad Click** — User taps Click-to-WhatsApp Meta ad → referral data captured (source, headline, media)
-2. **Flow Detection** — Bot detects "wellness" keyword → routes to wellness flow; otherwise mental health
-3. **Package Selection** — Interactive button menu:
-   - Mental Health: Single Session (KES 1,250) or 4-Session Bundle (KES 3,750)
-   - Wellness: JITUNZE / USTAWI / IMARIKA / BORESHA / SHUJAA / JIPENDE (KES 2,195–12,495)
-4. **Data Collection** — Bot collects full name and ID number via conversation
-5. **Payment** — User taps "Pay Now" → M-PESA or Airtel STK Push sent to phone
-6. **Confirmation** — Callback received → session marked confirmed → WhatsApp receipt sent
-
-### Data Models
-
-| Model | Key Fields |
-|-------|------------|
-| **SessionBooking** | user_phone, flow_category (mental_health/mental_wellness), current_step, package_type, full_name, id_number, referral tracking (source_type, source_id, headline, media URLs), session_details (JSONB) |
-| **Payment** | user_phone, session_id (FK), checkout_request_id (UNIQUE), amount, mpesa_receipt_number, status (pending/completed/failed/cancelled), metadata (JSONB) |
-
-### API Endpoints
-
-| Method | Endpoint | Purpose |
-|--------|----------|----------|
-| GET | `/whatsapp/webhook` | Meta webhook verification (challenge-response) |
-| POST | `/whatsapp/webhook` | Receive incoming messages, button clicks & status updates |
-| POST | `/mpesa/callback` | M-PESA STK Push payment confirmation |
-| POST | `/payments/validate` | Airtel pre-transaction validation |
-| POST | `/payments/process` | Airtel post-PIN transaction processing |
-| POST | `/payments/enquiry` | Airtel transaction status enquiry |
-| POST | `/airtel/initiate` | Initiate Airtel STK Push |
-| GET | `/health` | Health check |
-| GET | `/swagger/*` | Auto-generated API documentation |
+1. **Ad Click** — User taps Click-to-WhatsApp Meta ad → referral data captured for attribution
+2. **Flow Detection** — Bot routes user to appropriate service category
+3. **Package Selection** — Interactive button menus for service and plan selection
+4. **Data Collection** — Conversational KYC collection
+5. **Payment** — M-PESA or Airtel STK Push sent to user's phone
+6. **Confirmation** — Payment callback processed → session confirmed → WhatsApp receipt sent
 
 ### Key Design Decisions
 
-- **JSON-driven templates** — All WhatsApp messages (text, buttons, images, footers) configured in `whatsapp_templates.json` — no code changes needed to update copy
-- **Smart session resumption** — In-progress sessions resume automatically; completed sessions trigger new booking; sessions expire after 1 hour of inactivity
+- **JSON-driven templates** — All WhatsApp messages configured in template files — no code changes needed to update copy
+- **Smart session resumption** — In-progress sessions resume automatically; completed sessions trigger new booking
 - **Dual payment provider** — M-PESA and Airtel Money with unified callback processing
-- **Ad attribution tracking** — Full referral capture from Meta ads (source type, headline, body, media) stored per session for campaign ROI analysis
-- **Environment-aware pricing** — Non-production environments auto-override to KES 1 for safe testing
-- **Repository pattern** — Clean separation: Handlers → Services → Repository → PostgreSQL
+- **Ad attribution tracking** — Full referral capture from Meta ads for campaign ROI analysis
+- **Environment-aware pricing** — Non-production environments auto-override for safe testing
+- **Clean architecture** — Handlers → Services → Repository → Database
 
 ---
 
@@ -1013,33 +795,11 @@ Computers & Accessories · Auto Items · Bags · Caps & Hats · Clothing · Flas
 
 ### Security Measures
 
-- Prepared statements (MySQLi) for database queries
-- Input sanitization with `htmlspecialchars()` and `filter_var()`
+- Prepared statements for database queries
+- Input sanitization and validation
 - Email validation before form submission
 - Environment-based database credentials
 - Error logging (not exposed to users)
-
-### Project Structure
-
-```
-├── index.php              # Homepage — hero carousel, top sellers, categories
-├── header.php             # Navigation bar (included in all pages)
-├── footer.php             # Footer with contact info & links
-├── connect.php            # Database connection (env-based credentials)
-├── product.php            # Product detail page with enquiry form
-├── category.php           # Product listing by category with search
-├── catalog.php            # PDF catalog download handler
-├── about_us.php           # Company vision, mission, core values
-├── contact_us.php         # Contact form + embedded Google Maps
-├── career.php             # Job listings portal
-├── career1.php            # Job detail: Business Development Officer
-├── career2.php            # Job detail: Office Assistant
-├── partners.php           # Partner logos carousel
-├── our-client.php         # Client logos display
-├── send_mail.php          # Enquiry email handler (sanitized inputs)
-└── catalog/
-    └── Admarkproducts.pdf # Downloadable product catalog
-```
 
 ### Deployment
 
