@@ -2,8 +2,8 @@
 <h3 align="center">Full-Stack Software Engineer — Private Repository Showcase</h3>
 
 <p align="center">
-  <em>Most production code is private (client IP / NDA).<br/>
-  This portfolio documents scope, architecture, and live demos — see <a href="./PORTFOLIO-NOTES.md">GitHub link strategy</a> for what reviewers can evaluate without repo access.</em>
+  <em><strong>Code repositories for client work are private; this document is the public case-study portfolio.</strong><br/>
+  See <a href="./PORTFOLIO-NOTES.md">GitHub link strategy</a> for what reviewers can evaluate without repo access.</em>
 </p>
 
 ---
@@ -987,7 +987,7 @@ Computers & Accessories · Auto Items · Bags · Caps & Hats · Clothing · Flas
 |----------|------|
 | **Live demo** | [credo247.com](https://credo247.com) |
 | **Case study** | This section |
-| **GitHub (public OSS)** | [github.com/mykendoch/bambaflux](https://github.com/mykendoch/bambaflux) |
+| **GitHub** | Private — client-owned. Available on request. |
 
 ---
 
