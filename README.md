@@ -19,7 +19,8 @@
 7. [HXA STK Push Initiator — M-Pesa Payment Collection System](#7--hxa-stk-push-initiator--m-pesa-payment-collection-system)
 8. [HXA WhatsApp Ads Bot — Conversational Booking & Payments Engine](#8--hxa-whatsapp-ads-bot--conversational-booking--payments-engine)
 9. [Admark Enterprises — Corporate Branding & Promotional Products Website](#9--admark-enterprises--corporate-branding--promotional-products-website)
-10. [Skills & Technology Summary](#-skills--technology-summary)
+10. [Credo247 — Kenya Airtime Wallet](#10--credo247--kenya-airtime-wallet)
+11. [Skills & Technology Summary](#-skills--technology-summary)
 
 ---
 
@@ -807,6 +808,102 @@ Computers & Accessories · Auto Items · Bags · Caps & Hats · Clothing · Flas
 - **Domain:** admark.co.ke
 - **Database:** MySQL via cPanel
 - **Email:** PHP native mail with server SMTP
+
+---
+
+## 10. 📱 Credo247 — Kenya Airtime Wallet
+
+> **Production prepaid airtime platform for Kenya, operated by GCOM Media Limited.**  
+> Mobile-first checkout at credo247.com — buy Safaricom airtime via M-Pesa STK Push or Paybill, with automated dispatch through Africa's Talking.
+
+### Architecture: Microservices Platform
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│              NGINX (Host TLS · Rate Limiting)                 │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌──────────────────┐    ┌──────────────────────────────┐   │
+│  │  React Frontend  │    │   Node.js Microservices       │   │
+│  │  (Vite SPA)      │◄──►│                               │   │
+│  │                  │    │  ┌─────────┐ ┌─────────────┐  │   │
+│  │  • Buy flow      │    │  │  Auth   │ │  Payment    │  │   │
+│  │  • Guest checkout│    │  │ Service │ │  Service    │  │   │
+│  │  • Admin portal  │    │  └─────────┘ └─────────────┘  │   │
+│  └──────────────────┘    │  ┌─────────────────────────┐  │   │
+│                          │  │   Airtime Service       │  │   │
+│                          │  │   (Dispatch Worker)     │  │   │
+│                          │  └─────────────────────────┘  │   │
+│                          └──────────────────────────────┘   │
+│                                                              │
+├──────────────────────────────────────────────────────────────┤
+│  PostgreSQL  │  Redis (Rate Limits · Job Queues)            │
+└──────────────────────────────────────────────────────────────┘
+│     Safaricom M-Pesa (STK + Paybill)  ←→  Africa's Talking  │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | React 18 + TypeScript + Vite |
+| **Backend** | Node.js 20 + Express (Microservices) |
+| **Database** | PostgreSQL 16 |
+| **Cache / Queues** | Redis 7 + BullMQ |
+| **ORM** | Prisma |
+| **Payments** | M-Pesa STK Push + Paybill C2B (Safaricom Daraja API) |
+| **Airtime Dispatch** | Africa's Talking API |
+| **Bot Defense** | Cloudflare Turnstile + honeypot + Redis rate limits |
+| **Analytics** | Google Analytics 4 (purchase conversion on checkout) |
+| **Observability** | OpenTelemetry + structured logging |
+| **Reverse Proxy** | Nginx (host TLS on VPS) |
+| **Containerization** | Docker + Docker Compose |
+
+### Customer Features
+
+| Module | Features |
+|--------|----------|
+| **Buy Flow** | Guest checkout (no account required), buy for self or someone else, DB-driven pricing tiers with bonus airtime |
+| **M-Pesa STK Push** | One-tap payment with status polling; STK sent to payer, airtime delivered to recipient |
+| **Paybill Fallback** | Manual Paybill 707088 with recipient phone as account number; C2B reconciliation in admin |
+| **Receipt Recovery** | Redeem M-Pesa receipt if STK times out; admin approval queue for unmatched receipts |
+| **Phone Detection** | Carrier header enrichment on mobile data; manual entry on WiFi |
+| **Customer Auth** | Email + OTP registration, Google sign-in, purchase history linked to phone |
+
+### Payment & Airtime Flow
+
+1. **Checkout** — Customer selects amount and recipient; pricing tiers applied from database
+2. **Security checks** — Turnstile captcha, honeypot, IP/phone rate limits, STK cooldown
+3. **STK Push** — M-Pesa prompt sent to payer phone (Paybill 707088 for manual path)
+4. **Callback processing** — M-Pesa webhook staged and processed asynchronously via job queue
+5. **Wallet credit** — Recipient wallet credited on confirmed payment; one receipt per transaction
+6. **Airtime dispatch** — Africa's Talking delivers airtime to recipient with provider float tracking and retry
+
+### Admin Portal
+
+| Module | Capabilities |
+|--------|--------------|
+| **Dashboard** | Live transaction stats, date filtering, Excel ledger export |
+| **Transactions** | Paginated payment list with status filters and full audit payload inspection |
+| **Reconciliation** | Payment vs dispatch vs provider float sync; manual Paybill receipt recovery |
+| **Analytics** | Revenue by channel (STK, Paybill, receipt redeem), MNO breakdown, profit reporting |
+| **Pricing** | CRUD for bonus tiers, preset amounts, and visibility |
+| **Accounts** | Provider float balance, airtime purchase log, reorder thresholds |
+| **Audit Trail** | Admin action logging with role-based access control |
+
+### Security
+
+- Layered bot defense without forcing login (Turnstile, honeypot, Redis rate limits, STK cooldown)
+- Admin Google OAuth + TOTP 2FA with granular permissions matrix
+- Idempotent payment processing — each M-Pesa receipt completes exactly one purchase
+- Secret redaction in structured logs and distributed traces
+
+### Deployment
+
+- **Production:** Docker Compose on VPS with host Nginx and Let's Encrypt TLS
+- **Domain:** credo247.com
+- **Client:** GCOM Media Limited
 
 ---
 
