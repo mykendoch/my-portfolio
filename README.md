@@ -2,25 +2,23 @@
 <h3 align="center">Full-Stack Software Engineer — Private Repository Showcase</h3>
 
 <p align="center">
-  <em><strong>Code repositories for client work are private; this document is the public case-study portfolio.</strong><br/>
-  See <a href="./PORTFOLIO-NOTES.md">GitHub link strategy</a> for what reviewers can evaluate without repo access.</em>
+  <em><strong>Code repositories for client work are private; this document is the public case-study portfolio.</strong></em>
 </p>
 
 ---
 
 ## Table of Contents
 
-0. [GitHub Link Strategy](./PORTFOLIO-NOTES.md) — what to share when asked for "your GitHub"
 1. [AgriFarm AI — Dairy Farm Management Platform](#1--agrifarm-ai--ai-powered-dairy-farm-management-platform)
-2. [HMIS Web — Hospital Management Information System](#2--hmis-web--hospital-management-information-system)
-3. [MedCom HMIS — Legacy Healthcare Desktop System](#3--medcom-hmis--legacy-healthcare-desktop-system)
-4. [Smart Shift Planner — AI-Driven Gig Economy Scheduler](#4--smart-shift-planner--ai-driven-gig-economy-scheduler)
-5. [HealthX Dawa — Pharmaceutical E-Commerce Platform](#5--healthx-dawa--pharmaceutical-e-commerce-platform)
-6. [HealthX USSD — Telemedicine & Micro-Insurance USSD Platform](#6--healthx-ussd--telemedicine--micro-insurance-ussd-platform)
-7. [HXA STK Push Initiator — M-Pesa Payment Collection System](#7--hxa-stk-push-initiator--m-pesa-payment-collection-system)
-8. [HXA WhatsApp Ads Bot — Conversational Booking & Payments Engine](#8--hxa-whatsapp-ads-bot--conversational-booking--payments-engine)
-9. [Admark Enterprises — Corporate Branding & Promotional Products Website](#9--admark-enterprises--corporate-branding--promotional-products-website)
-10. [Credo247 — Kenya Airtime Wallet](#10--credo247--kenya-airtime-wallet)
+2. [Credo247 — Kenya Airtime Wallet](#2--credo247--kenya-airtime-wallet)
+3. [HMIS Web — Hospital Management Information System](#3--hmis-web--hospital-management-information-system)
+4. [MedCom HMIS — Legacy Healthcare Desktop System](#4--medcom-hmis--legacy-healthcare-desktop-system)
+5. [Smart Shift Planner — AI-Driven Gig Economy Scheduler](#5--smart-shift-planner--ai-driven-gig-economy-scheduler)
+6. [HealthX Dawa — Pharmaceutical E-Commerce Platform](#6--healthx-dawa--pharmaceutical-e-commerce-platform)
+7. [HealthX USSD — Telemedicine & Micro-Insurance USSD Platform](#7--healthx-ussd--telemedicine--micro-insurance-ussd-platform)
+8. [HXA STK Push Initiator — M-Pesa Payment Collection System](#8--hxa-stk-push-initiator--m-pesa-payment-collection-system)
+9. [HXA WhatsApp Ads Bot — Conversational Booking & Payments Engine](#9--hxa-whatsapp-ads-bot--conversational-booking--payments-engine)
+10. [Admark Enterprises — Corporate Branding & Promotional Products Website](#10--admark-enterprises--corporate-branding--promotional-products-website)
 11. [Skills & Technology Summary](#-skills--technology-summary)
 
 ---
@@ -161,7 +159,113 @@ Multi-farm RBAC with per-cow assignment, team invites, and cooperative/aggregato
 
 ---
 
-## 2. 🏥 HMIS Web — Hospital Management Information System
+## 2. 📱 Credo247 — Kenya Airtime Wallet
+
+> **Production prepaid airtime platform for Kenya, operated by GCOM Media Limited.**  
+> Mobile-first checkout at credo247.com — buy Safaricom airtime via M-Pesa STK Push or Paybill, with automated dispatch through Africa's Talking.
+
+### Architecture: Microservices Platform
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│              NGINX (Host TLS · Rate Limiting)                 │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌──────────────────┐    ┌──────────────────────────────┐   │
+│  │  React Frontend  │    │   Node.js Microservices       │   │
+│  │  (Vite SPA)      │◄──►│                               │   │
+│  │                  │    │  ┌─────────┐ ┌─────────────┐  │   │
+│  │  • Buy flow      │    │  │  Auth   │ │  Payment    │  │   │
+│  │  • Guest checkout│    │  │ Service │ │  Service    │  │   │
+│  │  • Admin portal  │    │  └─────────┘ └─────────────┘  │   │
+│  └──────────────────┘    │  ┌─────────────────────────┐  │   │
+│                          │  │   Airtime Service       │  │   │
+│                          │  │   (Dispatch Worker)     │  │   │
+│                          │  └─────────────────────────┘  │   │
+│                          └──────────────────────────────┘   │
+│                                                              │
+├──────────────────────────────────────────────────────────────┤
+│  PostgreSQL  │  Redis (Rate Limits · Job Queues)            │
+└──────────────────────────────────────────────────────────────┘
+│     Safaricom M-Pesa (STK + Paybill)  ←→  Africa's Talking  │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | React 18 + TypeScript + Vite |
+| **Backend** | Node.js 20 + Express (Microservices) |
+| **Database** | PostgreSQL 16 |
+| **Cache / Queues** | Redis 7 + BullMQ |
+| **ORM** | Prisma |
+| **Payments** | M-Pesa STK Push + Paybill C2B (Safaricom Daraja API) |
+| **Airtime Dispatch** | Africa's Talking API |
+| **Bot Defense** | Cloudflare Turnstile + honeypot + Redis rate limits |
+| **Analytics** | Google Analytics 4 (purchase conversion on checkout) |
+| **Observability** | OpenTelemetry + structured logging |
+| **Reverse Proxy** | Nginx (host TLS on VPS) |
+| **Containerization** | Docker + Docker Compose |
+
+### Customer Features
+
+| Module | Features |
+|--------|----------|
+| **Buy Flow** | Guest checkout (no account required), buy for self or someone else, DB-driven pricing tiers with bonus airtime |
+| **M-Pesa STK Push** | One-tap payment with status polling; STK sent to payer, airtime delivered to recipient |
+| **Paybill Fallback** | Manual Paybill 707088 with recipient phone as account number; C2B reconciliation in admin |
+| **Receipt Recovery** | Redeem M-Pesa receipt if STK times out; admin approval queue for unmatched receipts |
+| **Phone Detection** | Carrier header enrichment on mobile data; manual entry on WiFi |
+| **Customer Auth** | Email + OTP registration, Google sign-in, purchase history linked to phone |
+| **UI** | Glassmorphism theme with dark/light mode and adjustable font sizes |
+| **Sandbox testing** | DB-driven MSISDN outcomes, async webhook queue, provider float inventory for QA |
+
+### Payment & Airtime Flow
+
+1. **Checkout** — Customer selects amount and recipient; pricing tiers applied from database
+2. **Security checks** — Turnstile captcha, honeypot, IP/phone rate limits, STK cooldown
+3. **STK Push** — M-Pesa prompt sent to payer phone (Paybill 707088 for manual path)
+4. **Callback processing** — M-Pesa webhook staged and processed asynchronously via job queue
+5. **Wallet credit** — Recipient wallet credited on confirmed payment; one receipt per transaction
+6. **Airtime dispatch** — Africa's Talking delivers airtime to recipient with provider float tracking and retry
+
+### Admin Portal
+
+| Module | Capabilities |
+|--------|--------------|
+| **Dashboard** | Live transaction stats, date filtering, Excel ledger export |
+| **Transactions** | Paginated payment list with status filters and full audit payload inspection |
+| **Reconciliation** | Payment vs dispatch vs provider float sync; manual Paybill receipt recovery |
+| **Analytics** | Revenue by channel (STK, Paybill, receipt redeem), MNO breakdown, profit reporting |
+| **Pricing** | CRUD for bonus tiers, preset amounts, and visibility |
+| **Accounts** | Provider float balance, airtime purchase log, reorder thresholds |
+| **Audit Trail** | Admin action logging with role-based access control |
+
+### Security
+
+- Layered bot defense without forcing login (Turnstile, honeypot, Redis rate limits, STK cooldown)
+- Admin Google OAuth + TOTP 2FA with granular permissions matrix
+- Idempotent payment processing — each M-Pesa receipt completes exactly one purchase
+- Secret redaction in structured logs and distributed traces
+
+### Deployment
+
+- **Production:** Docker Compose on VPS with host Nginx and Let's Encrypt TLS
+- **Domain:** credo247.com
+- **Client:** GCOM Media Limited
+
+### Links & Code Access
+
+| Resource | Link |
+|----------|------|
+| **Live demo** | [credo247.com](https://credo247.com) |
+| **Case study** | This section |
+| **GitHub** | Private — client-owned. Available on request. |
+
+---
+
+## 3. 🏥 HMIS Web — Hospital Management Information System
 
 > **Cloud-native, multi-tenant Hospital Management SaaS.**  
 > Modernizing healthcare IT in East Africa — migrating from legacy Java desktop to production-grade web platform with enterprise licensing.
@@ -256,7 +360,7 @@ Platform (Super Admin)
 
 ---
 
-## 3. 💊 MedCom HMIS — Legacy Healthcare Desktop System
+## 4. 💊 MedCom HMIS — Legacy Healthcare Desktop System
 
 > **Production Java desktop application running live at Komarock Modern Healthcare, Nairobi.**  
 > Comprehensive hospital management covering clinical, financial, and administrative workflows.
@@ -327,11 +431,11 @@ Platform (Super Admin)
 - **Live at:** A healthcare facility in Nairobi, Kenya
 - **Users:** Doctors, nurses, pharmacists, lab technicians, billing clerks, administrators
 
-> 🔄 **Currently being migrated** to HMIS Web (Project #2 above) for cloud-native, multi-tenant capability.
+> 🔄 **Currently being migrated** to HMIS Web (Project #3 above) for cloud-native, multi-tenant capability.
 
 ---
 
-## 4. 📊 Smart Shift Planner — AI-Driven Gig Economy Scheduler
+## 5. 📊 Smart Shift Planner — AI-Driven Gig Economy Scheduler
 
 > **BSc Computer Science Final Year Project.**  
 > AI-powered earnings prediction and income guarantee system for UK gig economy drivers.  
@@ -429,7 +533,7 @@ Auth · Shifts · Predictions · Analytics · Admin Management · Accuracy Metri
 
 ---
 
-## 5. 💊 HealthX Dawa — Pharmaceutical E-Commerce Platform
+## 6. 💊 HealthX Dawa — Pharmaceutical E-Commerce Platform
 
 > **Full-featured online pharmacy serving both prescription and OTC drug sales in Kenya.**
 > Complete e-commerce platform with M-Pesa & PesaPal payments, prescription fulfillment, telehealth consultations, logistics integration, and multi-role admin dashboard.
@@ -536,7 +640,7 @@ Auth · Shifts · Predictions · Analytics · Admin Management · Accuracy Metri
 
 ---
 
-## 6. 📱 HealthX USSD — Telemedicine & Micro-Insurance USSD Platform
+## 7. 📱 HealthX USSD — Telemedicine & Micro-Insurance USSD Platform
 
 > **Production USSD microservice enabling healthcare access on any phone — including feature phones.**  
 > Customers dial a USSD short code to purchase telemedicine consultations, micro-insurance, wellness subscriptions, and health content — all paid via M-Pesa. Built for a telehealth company in Nairobi, Kenya.
@@ -621,7 +725,7 @@ Auth · Shifts · Predictions · Analytics · Admin Management · Accuracy Metri
 
 ---
 
-## 7. 💳 HXA STK Push Initiator — M-Pesa Payment Collection System
+## 8. 💳 HXA STK Push Initiator — M-Pesa Payment Collection System
 
 > **Automated payment collection for HealthX Africa healthcare subscriptions.**  
 > Django-based system integrating Safaricom M-Pesa STK Push to silently initiate mobile money payments for healthcare service packages.
@@ -699,7 +803,7 @@ Configurable catalog of healthcare subscription packages across multiple care ca
 
 ---
 
-## 8. 💬 HXA WhatsApp Ads Bot — Conversational Booking & Payments Engine
+## 9. 💬 HXA WhatsApp Ads Bot — Conversational Booking & Payments Engine
 
 > **End-to-end WhatsApp booking automation for HealthX Africa mental health & wellness services.**  
 > Go-based backend that receives Meta WhatsApp Business API messages, guides users through interactive booking flows, and processes payments via M-PESA STK Push and Airtel Money — all within the WhatsApp conversation.
@@ -798,7 +902,7 @@ PostgreSQL 15    M-PESA API       Airtel Money API
 
 ---
 
-## 9. 🏢 Admark Enterprises — Corporate Branding & Promotional Products Website
+## 10. 🏢 Admark Enterprises — Corporate Branding & Promotional Products Website
 
 > **Production corporate website for Admark Enterprises Limited — a promotional products and branding solutions company in Nairobi, Kenya.**  
 > Product catalog with category browsing, customer enquiry system, career portal, and partner/client showcase.
@@ -885,112 +989,6 @@ Computers & Accessories · Auto Items · Bags · Caps & Hats · Clothing · Flas
 
 ---
 
-## 10. 📱 Credo247 — Kenya Airtime Wallet
-
-> **Production prepaid airtime platform for Kenya, operated by GCOM Media Limited.**  
-> Mobile-first checkout at credo247.com — buy Safaricom airtime via M-Pesa STK Push or Paybill, with automated dispatch through Africa's Talking.
-
-### Architecture: Microservices Platform
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│              NGINX (Host TLS · Rate Limiting)                 │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────────────┐    ┌──────────────────────────────┐   │
-│  │  React Frontend  │    │   Node.js Microservices       │   │
-│  │  (Vite SPA)      │◄──►│                               │   │
-│  │                  │    │  ┌─────────┐ ┌─────────────┐  │   │
-│  │  • Buy flow      │    │  │  Auth   │ │  Payment    │  │   │
-│  │  • Guest checkout│    │  │ Service │ │  Service    │  │   │
-│  │  • Admin portal  │    │  └─────────┘ └─────────────┘  │   │
-│  └──────────────────┘    │  ┌─────────────────────────┐  │   │
-│                          │  │   Airtime Service       │  │   │
-│                          │  │   (Dispatch Worker)     │  │   │
-│                          │  └─────────────────────────┘  │   │
-│                          └──────────────────────────────┘   │
-│                                                              │
-├──────────────────────────────────────────────────────────────┤
-│  PostgreSQL  │  Redis (Rate Limits · Job Queues)            │
-└──────────────────────────────────────────────────────────────┘
-│     Safaricom M-Pesa (STK + Paybill)  ←→  Africa's Talking  │
-└──────────────────────────────────────────────────────────────┘
-```
-
-### Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | React 18 + TypeScript + Vite |
-| **Backend** | Node.js 20 + Express (Microservices) |
-| **Database** | PostgreSQL 16 |
-| **Cache / Queues** | Redis 7 + BullMQ |
-| **ORM** | Prisma |
-| **Payments** | M-Pesa STK Push + Paybill C2B (Safaricom Daraja API) |
-| **Airtime Dispatch** | Africa's Talking API |
-| **Bot Defense** | Cloudflare Turnstile + honeypot + Redis rate limits |
-| **Analytics** | Google Analytics 4 (purchase conversion on checkout) |
-| **Observability** | OpenTelemetry + structured logging |
-| **Reverse Proxy** | Nginx (host TLS on VPS) |
-| **Containerization** | Docker + Docker Compose |
-
-### Customer Features
-
-| Module | Features |
-|--------|----------|
-| **Buy Flow** | Guest checkout (no account required), buy for self or someone else, DB-driven pricing tiers with bonus airtime |
-| **M-Pesa STK Push** | One-tap payment with status polling; STK sent to payer, airtime delivered to recipient |
-| **Paybill Fallback** | Manual Paybill 707088 with recipient phone as account number; C2B reconciliation in admin |
-| **Receipt Recovery** | Redeem M-Pesa receipt if STK times out; admin approval queue for unmatched receipts |
-| **Phone Detection** | Carrier header enrichment on mobile data; manual entry on WiFi |
-| **Customer Auth** | Email + OTP registration, Google sign-in, purchase history linked to phone |
-| **UI** | Glassmorphism theme with dark/light mode and adjustable font sizes |
-| **Sandbox testing** | DB-driven MSISDN outcomes, async webhook queue, provider float inventory for QA |
-
-### Payment & Airtime Flow
-
-1. **Checkout** — Customer selects amount and recipient; pricing tiers applied from database
-2. **Security checks** — Turnstile captcha, honeypot, IP/phone rate limits, STK cooldown
-3. **STK Push** — M-Pesa prompt sent to payer phone (Paybill 707088 for manual path)
-4. **Callback processing** — M-Pesa webhook staged and processed asynchronously via job queue
-5. **Wallet credit** — Recipient wallet credited on confirmed payment; one receipt per transaction
-6. **Airtime dispatch** — Africa's Talking delivers airtime to recipient with provider float tracking and retry
-
-### Admin Portal
-
-| Module | Capabilities |
-|--------|--------------|
-| **Dashboard** | Live transaction stats, date filtering, Excel ledger export |
-| **Transactions** | Paginated payment list with status filters and full audit payload inspection |
-| **Reconciliation** | Payment vs dispatch vs provider float sync; manual Paybill receipt recovery |
-| **Analytics** | Revenue by channel (STK, Paybill, receipt redeem), MNO breakdown, profit reporting |
-| **Pricing** | CRUD for bonus tiers, preset amounts, and visibility |
-| **Accounts** | Provider float balance, airtime purchase log, reorder thresholds |
-| **Audit Trail** | Admin action logging with role-based access control |
-
-### Security
-
-- Layered bot defense without forcing login (Turnstile, honeypot, Redis rate limits, STK cooldown)
-- Admin Google OAuth + TOTP 2FA with granular permissions matrix
-- Idempotent payment processing — each M-Pesa receipt completes exactly one purchase
-- Secret redaction in structured logs and distributed traces
-
-### Deployment
-
-- **Production:** Docker Compose on VPS with host Nginx and Let's Encrypt TLS
-- **Domain:** credo247.com
-- **Client:** GCOM Media Limited
-
-### Links & Code Access
-
-| Resource | Link |
-|----------|------|
-| **Live demo** | [credo247.com](https://credo247.com) |
-| **Case study** | This section |
-| **GitHub** | Private — client-owned. Available on request. |
-
----
-
 ## 🧰 Skills & Technology Summary
 
 ### Languages
@@ -1054,8 +1052,7 @@ Computers & Accessories · Auto Items · Bags · Caps & Hats · Clothing · Flas
 ---
 
 <p align="center">
-  <em>See <a href="./PORTFOLIO-NOTES.md">GitHub link strategy</a> for what reviewers can evaluate without private repo access.<br/>
-  For code review access or live demos, please reach out directly.</em>
+  <em>For code review access or live demos, please reach out directly.</em>
 </p>
 
 <p align="center"><strong>"Code is private. Impact is public."</strong></p>
