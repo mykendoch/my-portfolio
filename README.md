@@ -2,14 +2,15 @@
 <h3 align="center">Full-Stack Software Engineer — Private Repository Showcase</h3>
 
 <p align="center">
-  <em>My repositories are private to protect proprietary and commercial code.<br/>
-  This portfolio provides comprehensive documentation of each project's scope, architecture, and capabilities.</em>
+  <em>Most production code is private (client IP / NDA).<br/>
+  This portfolio documents scope, architecture, and live demos — see <a href="./PORTFOLIO-NOTES.md">GitHub link strategy</a> for what reviewers can evaluate without repo access.</em>
 </p>
 
 ---
 
 ## Table of Contents
 
+0. [GitHub Link Strategy](./PORTFOLIO-NOTES.md) — what to share when asked for "your GitHub"
 1. [AgriFarm AI — Dairy Farm Management Platform](#1--agrifarm-ai--ai-powered-dairy-farm-management-platform)
 2. [HMIS Web — Hospital Management Information System](#2--hmis-web--hospital-management-information-system)
 3. [MedCom HMIS — Legacy Healthcare Desktop System](#3--medcom-hmis--legacy-healthcare-desktop-system)
@@ -26,72 +27,137 @@
 
 ## 1. 🐄 AgriFarm AI — AI-Powered Dairy Farm Management Platform
 
-> **Smart herd management SaaS built specifically for African dairy farmers.**  
-> Subscription-based platform with AI-powered diagnostics, production analytics, and mobile money payments.
+> **Production SaaS marketed as Cowalima AI — smart herd management for African dairy farms.**  
+> Live at [cowalima.co.ke](https://cowalima.co.ke). Subscription tiers, M-Pesa/Stripe billing, and a 12-service microservices backend.
 
-### Architecture Overview
-
-Distributed microservices architecture with API gateway, dedicated services for each business domain, and a modern React frontend. Full production observability stack with distributed tracing, metrics collection, and centralized logging.
+### Architecture: 12 Microservices
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                    API GATEWAY                            │
-│              (SSL · Rate Limiting · Routing)               │
-├──────────────────────────────────────────────────────────┤
-│                                                            │
-│     Multiple Domain-Specific Microservices                 │
-│     (Authentication · Herd Management · Health ·           │
-│      Production · AI · Payments · Notifications ·          │
-│      Reports · Media)                                      │
-│                                                            │
-│  ┌──────────────────────────────────────────────────┐     │
-│  │              React Frontend (SPA)                 │     │
-│  └──────────────────────────────────────────────────┘     │
-│                                                            │
-├──────────────────────────────────────────────────────────┤
-│  PostgreSQL  │  Redis (Cache & Queue)  │  Object Storage  │
-└──────────────────────────────────────────────────────────┘
-│              Observability & Monitoring Stack              │
-└──────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│           NGINX API GATEWAY (TLS · Rate Limiting)             │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  auth · cow · health · milk · reproduction · notification    │
+│  ai · payment · report · media                               │
+│                                                              │
+│  ┌──────────────────┐    ┌──────────────────────────────┐   │
+│  │  React 18 SPA    │◄──►│  Node.js 20 + Express        │   │
+│  │  (40+ pages)      │    │  (TypeScript · Prisma)       │   │
+│  └──────────────────┘    └──────────────────────────────┘   │
+│                                                              │
+├──────────────────────────────────────────────────────────────┤
+│  PostgreSQL 16  │  Redis 7 (cache · queues)  │  Object storage │
+└──────────────────────────────────────────────────────────────┘
+│  OpenTelemetry · Prometheus · Grafana · Loki                   │
+└──────────────────────────────────────────────────────────────┘
 ```
+
+| Service | Role |
+|---------|------|
+| **auth-service** | JWT auth, farms, subscriptions, team invites, RBAC |
+| **cow-service** | Cow profiles, categories, genealogy, transfers |
+| **health-service** | Treatments, vaccinations, deworming, health scoring |
+| **milk-service** | Daily milk recording, buyer allocation, anomaly hints |
+| **reproduction-service** | Heat → insemination → pregnancy → calving state machine |
+| **notification-service** | Email + SMS (Africa's Talking) with deep links |
+| **ai-service** | Farm-context chatbot (Claude/OpenAI), predictive insights |
+| **payment-service** | Stripe + M-Pesa (Daraja) for subscription billing |
+| **report-service** | PDF + Excel herd, milk, health, and financial exports |
+| **media-service** | Cow photo/video gallery uploads and storage |
 
 ### Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
 | **Frontend** | React 18 + TypeScript + Vite |
-| **Backend** | Node.js 20 + Express (Microservices) |
-| **Database** | PostgreSQL 16 + Redis 7 |
-| **ORM** | Prisma |
-| **API Gateway** | Nginx |
-| **File Storage** | S3-compatible object storage |
-| **Monitoring** | OpenTelemetry + Prometheus + Grafana |
+| **Backend** | Node.js 20 + Express (12 microservices) |
+| **Database** | PostgreSQL 16 + Prisma ORM |
+| **Cache / Queues** | Redis 7 |
+| **AI** | Anthropic Claude + OpenAI (farm-context advisor) |
 | **Payments** | Stripe + M-Pesa (Safaricom Daraja API) |
-| **Notifications** | SMS + Email |
-| **AI** | LLM-powered diagnostics + image analysis |
-| **Queue** | Redis-backed job queue |
+| **SMS** | Africa's Talking |
+| **Monitoring** | OpenTelemetry + Prometheus + Grafana + Loki |
+| **Reverse Proxy** | Nginx |
 | **Containerization** | Docker + Docker Compose |
 | **CI/CD** | GitHub Actions |
 
-### Key Features
+### Herd & Cow Profiles
 
-- **AI-Powered Diagnostics** — Intelligent health analysis with image and video support
-- **Production Analytics** — ML-based anomaly detection and trend analysis
-- **Reproductive Management** — Cycle tracking and predictive scheduling
-- **Herd Health Scoring** — Automated wellness assessment across the herd
-- **Genealogy Tracking** — Full lineage and breeding history
-- **Mobile Money Payments** — Native M-Pesa integration for subscriptions
-- **Multi-Role Access Control** — Granular permissions across multiple user roles
-- **Real-Time Alerts** — SMS notifications for critical events
-- **Comprehensive Reporting** — PDF and Excel exports for production, financials, and health
-- **SaaS Admin Portal** — Platform management dashboard with subscription tiers
+| Module | Features |
+|--------|----------|
+| **Herd dashboard** | Searchable table/card views, status filters (lactating, dry, pregnant, sick), CSV/PDF export |
+| **Cow registration** | Category-aware validation (calf/heifer/milker/bull), acquisition history, purchase price |
+| **Photo gallery** | Multi-image upload at registration and on profile; primary photo, captions, duplicate detection |
+| **Cow profile (360°)** | Tabs: Gallery · Milk · Health · Breeding · Financials · Timeline — all backed by live API data |
+| **Farm events** | Mortality, sales, incidents, and milk-loss records linked to individual cows |
+| **Cow transfers** | Accept/decline inter-farm transfer workflow with audit trail |
 
-### Platform Scale
+### Breeding & Pregnancy Tracking
 
-- Multiple microservices with independent scaling
-- Tiered subscription model (Free through Enterprise)
-- 26+ frontend pages covering all farm management workflows
-- Full production observability across all services
+Full reproductive lifecycle aligned to on-farm practice (PDF spec Sections 6.1–6.4):
+
+1. **Heat detection** — record observed heats; gate checks after calving recovery
+2. **Insemination** — AI or natural mating; semen batch, bull picker, service provider, cost
+3. **Pregnancy confirmation** — YES / NO / UNCERTAIN outcomes; expected calving date auto-calculated
+4. **Pregnancy monitoring** — stage in weeks/months, overdue alerts, unconfirmed-pregnancy banners
+5. **Calving** — ease scoring, calf auto-registration, parity update, post-calving recovery gates
+6. **State machine** — `OPEN → BRED → PREGNANT → DRY → (calving) → OPEN` enforced server-side
+
+### Health, Milk & Finance
+
+| Module | Features |
+|--------|----------|
+| **Health** | Treatments, vaccinations, deworming, preventive reminders, per-cow health score |
+| **Milk** | Session recording, buyer allocation, eligibility rules by cow status, monthly reports |
+| **Finance** | Expenses, revenue, milk sales, stock management, profit/loss by period |
+| **Reports** | Filterable exports across herd, reproduction, health, and financial modules |
+
+### AI Farm Advisor
+
+- Context-aware chat using live herd, milk, health, and breeding data
+- English and Swahili responses; structured actions (e.g. log heat, open cow profile)
+- Predictive insights: cost, culling, feed efficiency, health risk cards
+- Usage limits tied to subscription tier
+
+### Team, Roles & Admin
+
+| Role | Capabilities |
+|------|-------------|
+| **Farmer / Manager** | Full farm ops; invite workers with granular permissions |
+| **Worker** | Scoped cow assignments and read/write limits |
+| **Platform admin** | Cross-farm view, subscription payments, impersonation for support |
+
+Multi-farm RBAC with per-cow assignment, team invites, and cooperative/aggregator views.
+
+### Subscription Tiers
+
+| Tier | Price (KES/mo) | Cows | History | AI chats |
+|------|---------------|------|---------|----------|
+| Free | 0 | 10 | 7 days | 3/month |
+| Basic | 1,500 | 50 | 90 days | 20/month |
+| Professional | 4,500 | 300 | Unlimited | Unlimited |
+| Enterprise | 12,000 | Unlimited | Unlimited | Unlimited |
+
+### Security & Observability
+
+- JWT auth with Google OAuth; email verification and password reset flows
+- Role-based permissions matrix; farm-scoped data isolation
+- Structured audit logging across auth, payments, and breeding mutations
+- Full observability stack with distributed tracing and centralized log shipping
+
+### Deployment
+
+- **Production:** Docker Compose on VPS, Nginx TLS, host-level log rotation
+- **Domain:** [cowalima.co.ke](https://cowalima.co.ke)
+- **Brand:** Cowalima AI (AgriFarm AI internal codename)
+
+### Links & Code Access
+
+| Resource | Link |
+|----------|------|
+| **Live demo** | [cowalima.co.ke](https://cowalima.co.ke) |
+| **Case study** | This section |
+| **GitHub** | Private — commercial/client IP. Available on request for qualified review. |
 
 ---
 
@@ -809,6 +875,14 @@ Computers & Accessories · Auto Items · Bags · Caps & Hats · Clothing · Flas
 - **Database:** MySQL via cPanel
 - **Email:** PHP native mail with server SMTP
 
+### Links & Code Access
+
+| Resource | Link |
+|----------|------|
+| **Live site** | [admark.co.ke](https://admark.co.ke) |
+| **Case study** | This section |
+| **GitHub** | Private — client-owned. Available on request. |
+
 ---
 
 ## 10. 📱 Credo247 — Kenya Airtime Wallet
@@ -870,6 +944,8 @@ Computers & Accessories · Auto Items · Bags · Caps & Hats · Clothing · Flas
 | **Receipt Recovery** | Redeem M-Pesa receipt if STK times out; admin approval queue for unmatched receipts |
 | **Phone Detection** | Carrier header enrichment on mobile data; manual entry on WiFi |
 | **Customer Auth** | Email + OTP registration, Google sign-in, purchase history linked to phone |
+| **UI** | Glassmorphism theme with dark/light mode and adjustable font sizes |
+| **Sandbox testing** | DB-driven MSISDN outcomes, async webhook queue, provider float inventory for QA |
 
 ### Payment & Airtime Flow
 
@@ -904,6 +980,14 @@ Computers & Accessories · Auto Items · Bags · Caps & Hats · Clothing · Flas
 - **Production:** Docker Compose on VPS with host Nginx and Let's Encrypt TLS
 - **Domain:** credo247.com
 - **Client:** GCOM Media Limited
+
+### Links & Code Access
+
+| Resource | Link |
+|----------|------|
+| **Live demo** | [credo247.com](https://credo247.com) |
+| **Case study** | This section |
+| **GitHub (public OSS)** | [github.com/mykendoch/bambaflux](https://github.com/mykendoch/bambaflux) |
 
 ---
 
@@ -970,7 +1054,7 @@ Computers & Accessories · Auto Items · Bags · Caps & Hats · Clothing · Flas
 ---
 
 <p align="center">
-  <em>All repositories are private. This portfolio documents the scope, architecture, and capabilities of each project.<br/>
+  <em>See <a href="./PORTFOLIO-NOTES.md">GitHub link strategy</a> for what reviewers can evaluate without private repo access.<br/>
   For code review access or live demos, please reach out directly.</em>
 </p>
 
